@@ -1,0 +1,11 @@
+文档/
+
+# 忽略任何位置的 .env 文件
+**/.env
+**/.env.*
+
+# 唯独不要忽略 .env.example
+!**/.env.example
+
+.venv/
+__pycache__/

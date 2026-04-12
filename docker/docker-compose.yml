@@ -1,0 +1,48 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: guess-agent-mongo
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: guess_agent
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+      args:
+        PYTHON_BASE_IMAGE: ${PYTHON_BASE_IMAGE:-docker.m.daocloud.io/library/python:3.11-slim}
+    container_name: guess-agent-backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      APP_NAME: guess-agent
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      AGENT_MODEL_API_KEY: ${AGENT_MODEL_API_KEY}
+      AGENT_MODEL_BASE_URL: ${AGENT_MODEL_BASE_URL}
+      AGENT_MODEL_NAME: ${AGENT_MODEL_NAME}
+      AGENT_MODEL_TEMPERATURE: ${AGENT_MODEL_TEMPERATURE}
+      HELPER_MODEL_API_KEY: ${HELPER_MODEL_API_KEY}
+      HELPER_MODEL_BASE_URL: ${HELPER_MODEL_BASE_URL}
+      HELPER_MODEL_NAME: ${HELPER_MODEL_NAME}
+      HELPER_MODEL_TEMPERATURE: ${HELPER_MODEL_TEMPERATURE}
+      MONGO_URI: mongodb://root:rootpassword@mongo:27017/guess_agent?authSource=admin
+      MONGO_DB_NAME: guess_agent
+      ENCRYPTION_SECRET: guess-agent-demo-secret
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app/backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  mongo_data:
