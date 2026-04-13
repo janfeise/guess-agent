@@ -1,0 +1,7 @@
+1. docker
+2. 客户端：H5或者app
+3. MongoDB更适合存储
+4. langchain
+5. deepseek
+6. Python：langchain似乎提供了js版
+7. ……

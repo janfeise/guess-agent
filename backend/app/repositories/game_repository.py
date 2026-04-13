@@ -68,3 +68,60 @@ class GameRepository:
         cursor = self.collection.find(query).sort("updated_at", -1).skip(skip).limit(limit)
         
         return await cursor.to_list(length=limit)
+    
+    async def update_game_state(
+            self,
+            game_id: str,
+            history: list[dict] | None = None,
+            summary: str | None = None,
+            round_count: int | None = None,
+            phase: str | None = None,
+            awaiting_judgement: bool = False,
+            awaiting_answer: bool = False,
+            pending_guess: str = "",
+            pending_question: str = "",
+            agent_confidence: float = 0.0,
+            last_actor: str | None = None,
+            last_intent: str | None = None,
+            game_mode: str | None = None,
+            reasoning_scope: str | None = None,
+            next_actor: str | None = None,
+            expected_turn_type: str | None = None,
+    ):
+        update_fields = {
+            "history": history,
+            "summary": summary,
+            "round_count": round_count,
+            "metadata.phase": phase,
+            "metadata.awaiting_judgement": awaiting_judgement,
+            "metadata.awaiting_answer": awaiting_answer,
+            "metadata.pending_guess": pending_guess,
+            "metadata.pending_question": pending_question,
+            "metadata.agent_confidence": agent_confidence,
+            "updated_at": datetime.utcnow(),
+        }
+
+        if last_actor is not None:
+            update_fields["metadata.last_actor"] = last_actor
+        if last_intent is not None:
+            update_fields["metadata.last_intent"] = last_intent
+        if game_mode is not None:
+            update_fields["metadata.game_mode"] = game_mode
+        if reasoning_scope is not None:
+            update_fields["metadata.reasoning_scope"] = reasoning_scope
+        if next_actor is not None:
+            update_fields["metadata.next_actor"] = next_actor
+        if expected_turn_type is not None:
+            update_fields["metadata.expected_turn_type"] = expected_turn_type
+
+        result = await self.collection.update_one(
+            {"game_id": game_id},
+            {
+                "$set": update_fields
+            }
+        )
+
+        if result.matched_count == 0:
+            raise ValueError(f"Game with id {game_id} not found")
+        
+        return result

@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 # 导入项目内部模块
-from app.agents.guess_agent import GuessAgent
+from app.agents.guess_agent_fixed import GuessAgent
 from app.agents.utils.prompt_loader import PromptLoader
 from app.agents.utils.memory_policy import MemoryPolicy
 from app.core.config import get_settings
@@ -25,11 +25,11 @@ class CreateGameRequest(BaseModel):
 class CreateGameResponse(BaseModel):
     game_id: str = Field(..., description="游戏ID")
     status: str = Field(..., description="游戏状态")
-    round_count: int = Field(..., description="当前回合数")
+    round_count: int = Field(..., description="当前轮次")
     user_word: str = Field(..., description="玩家输入的开局词")
     difficulty: str = Field(..., description="游戏难度")
-    system_word_encrypted: str = Field(..., description="系统词加密后的密文")
-    created_at: datetime = Field(..., description="游戏创建时间")
+    system_word_encrypted: str = Field(..., description="系统词密文")
+    created_at: datetime = Field(..., description="创建时间")
 
 router = APIRouter(prefix="/games", tags=["games"])
 

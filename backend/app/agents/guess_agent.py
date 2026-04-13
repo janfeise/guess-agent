@@ -15,6 +15,7 @@ from .utils.streaming import (
     build_stream_error,
     build_stream_start,
 )
+from ..core.subject_pool import SubjectPool
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,9 @@ class GuessAgent:
     async def generate_start_word(self, difficulty: str | None = None, subject: str | None = None) -> str:
         # 根据提供的主题和难度，生成一个适合猜数字游戏的起始词
         system_prompt = self.prompt_loader.load_prompt("game_start")
+        # 注入学科池信息
+        subjects_info = SubjectPool.get_subjects_formatted_prompt_segment()
+        full_system_prompt = f"{system_prompt}\n\n可选学科范围：{subjects_info}"
         user_prompt = (
             f"请根据以下约束生成目标词.\n"
             f"难度：{difficulty or 'medium'}\n"
@@ -97,7 +101,7 @@ class GuessAgent:
             user_prompt += f"\n学科领域：{subject}"
 
         messages = [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": full_system_prompt},
             {"role": "user", "content": user_prompt}
         ]
 
@@ -147,3 +151,33 @@ class GuessAgent:
             yield build_stream_error("Sorry, I encountered an error while processing your request.")
         finally:
             yield build_stream_end()
+
+    async def parse_user_intent(self, user_input: str, history: list[dict]) -> dict:
+        # 解析用户输入的意图，判断是否需要切换到辅助模式，并返回解析结果
+        messages = [
+            {"role": "system", "content": self.prompt_loader.load_prompt("turn_router")},
+            {"role": "user", "content": f"请分析用户输入的意图：{user_input}"},
+        ]
+        response = await self.agent_model.ainvoke(messages)
+        return self._parse_json_response(response.content)
+    
+    async def answer_question(self, question: str, answer: str)-> dict:
+        # 判断用户的回答是否正确，返回判断结果
+        messages = [
+            {"role": "system", "content": self.prompt_loader.load_prompt("guess_system")},
+            {"role": "system", "content": f"真实答案：{answer}"},
+            {"role": "user", "content": question}
+        ]
+        response = await self.agent_model.ainvoke(messages)
+        return self._parse_json_response(response.content)
+    
+    async def decide_agent_action(self, history: list[dict], summary: str) -> dict:
+        # 根据当前的对话历史，判断agent下一步应该采取的行动（继续猜词、请求提示、切换模式等）
+        messages = [
+            {"role": "system", "content": self.prompt_loader.load_prompt("agent_decision")},
+            {"role": "user", "content": f"历史对话：{history}\n对话摘要：{summary}"}
+        ]
+        response = await self.agent_model.ainvoke(messages)
+        return self._parse_json_response(response.content)
+    
+    

@@ -1,0 +1,23 @@
+主模型（Agent）：
+→ deepseek-ai/DeepSeek-V3.2
+输入 tokens	
+¥0.002000/ K Tokens
+输出 tokens	
+¥0.003000/ K Tokens
+
+小助手：
+→ Qwen2.5-7B-Instruct
+输入 tokens	
+¥0.000000/ K Tokens
+输出 tokens	
+¥0.000000/ K Tokens
+用于：查询、解释、提示（不能影响游戏公平）
+
+Embedding（可选）：
+→ bge-m3
+输入 tokens	
+¥0.000000/ K Tokens
+用于：
+记录检索
+历史上下文增强
+小助手知识增强

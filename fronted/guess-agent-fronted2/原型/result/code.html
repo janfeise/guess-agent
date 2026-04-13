@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUNCH - 结果页</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#efdd89",
+                      "on-surface-variant": "#5a6062",
+                      "surface-container-high": "#e5e9eb",
+                      "surface-container-low": "#f1f4f5",
+                      "on-secondary-container": "#005971",
+                      "on-secondary": "#f2faff",
+                      "surface-tint": "#006c5a",
+                      "surface-variant": "#dee3e6",
+                      "secondary-fixed-dim": "#9bdefa",
+                      "error-container": "#fa746f",
+                      "surface-dim": "#d5dbdd",
+                      "on-tertiary-container": "#63570f",
+                      "on-secondary-fixed": "#004559",
+                      "secondary-container": "#bbe9ff",
+                      "tertiary-container": "#feec95",
+                      "on-error-container": "#6e0a12",
+                      "primary-dim": "#005e4e",
+                      "outline": "#767c7e",
+                      "surface": "#f8f9fa",
+                      "secondary-dim": "#005b73",
+                      "surface-container-lowest": "#ffffff",
+                      "primary-container": "#89f6da",
+                      "surface-container": "#ebeef0",
+                      "on-primary-fixed": "#00483b",
+                      "background": "#f8f9fa",
+                      "inverse-surface": "#0c0f10",
+                      "tertiary-fixed": "#feec95",
+                      "surface-container-highest": "#dee3e6",
+                      "on-tertiary-fixed-variant": "#6e6119",
+                      "on-primary": "#e4fff5",
+                      "on-tertiary": "#fff8ea",
+                      "outline-variant": "#adb3b5",
+                      "on-primary-container": "#005d4d",
+                      "primary-fixed-dim": "#7ae8cc",
+                      "on-tertiary-fixed": "#4f4400",
+                      "primary": "#006c5a",
+                      "on-error": "#fff7f6",
+                      "on-surface": "#2d3335",
+                      "on-background": "#2d3335",
+                      "on-primary-fixed-variant": "#006856",
+                      "surface-bright": "#f8f9fa",
+                      "secondary": "#1a6780",
+                      "inverse-primary": "#91ffe2",
+                      "on-secondary-fixed-variant": "#14637c",
+                      "tertiary": "#6c5f18",
+                      "error-dim": "#67040d",
+                      "inverse-on-surface": "#9b9d9e",
+                      "tertiary-dim": "#5f530b",
+                      "error": "#a83836",
+                      "primary-fixed": "#89f6da",
+                      "secondary-fixed": "#bbe9ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "1.5rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Plus Jakarta Sans"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(222, 227, 230, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl no-border bg-gradient-to-b from-slate-50 to-transparent">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-screen-xl mx-auto">
+<button class="text-emerald-700 dark:text-emerald-400 hover:opacity-80 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-black text-emerald-900 dark:text-emerald-100 tracking-widest font-['Plus_Jakarta_Sans']">HUNCH</h1>
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden">
+<img alt="AI Assistant Avatar" class="w-full h-full object-cover" data-alt="abstract 3d digital sculpture of flowing emerald and cyan silk textures with soft cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTu13KDFpSotte_TO6cBKLG3nVhIbGPUm6JQBzR_oQWAFVdD1ChDdM9qvd0NfivSMaNtXccqlc8d436jdsEk1beo_L6B7ZauylGchziPSCVaMYMqxvnbJIRXTG-hBkq8-mutMDz24fMv_hXmqADlK0qi0ywRZ_ICHSewURKoanMOvd-0A3_AzeFRiBlh_OOatiy5keEra8QAVXvJUrSiQrU6WOCdHGAaVgb1sb5CseAdvxkwlUoKZ63U-xfkcLJl1SGyI1PIn6ASg"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-24 pb-32 px-6 max-w-screen-xl mx-auto w-full">
+<!-- Victory Banner Section -->
+<section class="mb-12 text-center">
+<div class="inline-flex items-center justify-center space-x-2 bg-primary-container text-on-primary-container px-6 py-2 rounded-full mb-6">
+<span class="material-symbols-outlined text-[20px]" data-icon="emoji_events" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+<span class="text-sm font-bold tracking-widest uppercase">挑战完成</span>
+</div>
+<h2 class="font-headline text-6xl md:text-8xl font-extrabold tracking-tighter text-primary mb-2">胜利</h2>
+<p class="font-body text-on-surface-variant text-lg max-w-md mx-auto">以太向导对此印象深刻。你的直觉在未知中开辟了一条道路。</p>
+</section>
+<!-- The Result Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Target Word Card (Asymmetric Layout) -->
+<div class="md:col-span-7 relative group overflow-hidden bg-surface-container-lowest rounded-xl p-1 shadow-sm">
+<div class="bg-surface rounded-[1.25rem] p-8 h-full flex flex-col justify-center relative overflow-hidden">
+<!-- Background texture/blob -->
+<div class="absolute -right-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+<span class="text-on-surface-variant font-label text-sm uppercase tracking-[0.2em] mb-4">正确答案：</span>
+<div class="flex items-baseline space-x-4">
+<span class="font-headline text-5xl md:text-7xl font-bold text-on-surface tracking-tight">BICYCLE</span>
+</div>
+<!-- Decorative Icon -->
+<div class="mt-8 flex items-center text-primary/40">
+<span class="material-symbols-outlined text-4xl" data-icon="pedal_bike">pedal_bike</span>
+<div class="ml-4 h-[1px] flex-grow bg-outline-variant/20"></div>
+</div>
+</div>
+</div>
+<!-- Stats Section (Bento Style) -->
+<div class="md:col-span-5 grid grid-cols-2 gap-4">
+<!-- Stat 1: Turns -->
+<div class="bg-surface-container-low rounded-xl p-6 flex flex-col justify-between">
+<span class="material-symbols-outlined text-secondary text-3xl mb-4" data-icon="rebase_edit">rebase_edit</span>
+<div>
+<div class="font-headline text-3xl font-bold text-on-surface">12</div>
+<div class="font-label text-xs uppercase tracking-wider text-on-surface-variant">使用轮次</div>
+</div>
+</div>
+<!-- Stat 2: Time -->
+<div class="bg-surface-container-low rounded-xl p-6 flex flex-col justify-between">
+<span class="material-symbols-outlined text-secondary text-3xl mb-4" data-icon="timer">timer</span>
+<div>
+<div class="font-headline text-3xl font-bold text-on-surface">4:30</div>
+<div class="font-label text-xs uppercase tracking-wider text-on-surface-variant">总用时</div>
+</div>
+</div>
+<!-- Stat 3: Agent Confidence (Full Width) -->
+<div class="col-span-2 glass-card rounded-xl p-6 relative overflow-hidden">
+<div class="relative z-10">
+<div class="flex justify-between items-end mb-4">
+<div>
+<span class="material-symbols-outlined text-tertiary text-2xl mb-1" data-icon="neurology" style="font-variation-settings: 'FILL' 1;">neurology</span>
+<div class="font-label text-xs uppercase tracking-wider text-on-surface-variant">AI 信心指数</div>
+</div>
+<div class="font-headline text-4xl font-bold text-tertiary">85%</div>
+</div>
+<!-- Custom Progress Bar -->
+<div class="h-2 w-full bg-surface-variant/30 rounded-full overflow-hidden">
+<div class="h-full w-[85%] bg-gradient-to-r from-tertiary-dim to-tertiary rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="mt-12 flex flex-col md:flex-row gap-4 justify-center items-center">
+<button class="w-full md:w-64 bg-gradient-to-br from-primary to-primary-fixed-dim text-on-primary font-headline font-bold py-5 rounded-xl shadow-lg shadow-primary/10 hover:opacity-90 transition-all active:scale-95 duration-200">
+            再玩一次
+        </button>
+<button class="w-full md:w-64 bg-secondary-container text-on-secondary-container font-headline font-bold py-5 rounded-xl hover:opacity-80 transition-all active:scale-95 duration-200">
+            返回首页
+        </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-slate-50 dark:bg-slate-950 border-t-[0.5px] border-emerald-500/10 shadow-[0_-12px_40px_rgba(45,51,53,0.06)] rounded-t-[2rem] z-50">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 px-5 py-2 hover:text-emerald-600 dark:hover:text-emerald-300 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="videogame_asset">videogame_asset</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-1">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 rounded-2xl px-5 py-2 transition-all translate-y-[-2px]" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-1">历史</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 px-5 py-2 hover:text-emerald-600 dark:hover:text-emerald-300 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-1">规则</span>
+</a>
+</nav>
+<!-- Floating Hunch Decoration (Background) -->
+<div class="fixed top-1/2 left-0 -translate-y-1/2 -z-10 opacity-10 pointer-events-none">
+<img alt="Decorative pattern" class="w-[600px] blur-2xl" data-alt="ethereal microscopic fluid patterns with iridescent emerald and soft blue highlights, dreamlike soft focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDN7r5KEDZQyEI5Y9Lg7JFIKRpAeZ2OgC7B6aP9ybgmxiaXT8sXWE-eb8RxFsdm5zjr8VTysO7V7E908JKPGviC-otjfzIPAAFt66kCfVd-LgToJaDdeVT-KC6jlkFVn9H8Dvftaj-hSc0hteft1G1HNjvn74gTi8H04OwZjYZFaQv_C1kju5jhl-LQhLBR9CXHce0aZRQw9Ze8EEFW3e4Q-0qbofBmiraHfR1wgIQWPAYhcLeSBWmz2AA5RSiA6x5eRwSVbpBncms"/>
+</div>
+</body></html>

@@ -1,11 +1,152 @@
-文档/
+# ============================================
+# 项目文档和临时文件
+# ============================================
+# 注：取消注释下面这行以忽略所有文档
+# 文档/
 
-# 忽略任何位置的 .env 文件
+# ============================================
+# Python 相关
+# ============================================
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# ============================================
+# 环境变量和密钥（隐私文件）
+# ============================================
 **/.env
 **/.env.*
+**/.env.local
+**/.env.*.local
+!.env.example
+!.env.sample
 
-# 唯独不要忽略 .env.example
-!**/.env.example
+# MongoDB 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+data/
+database/
 
-.venv/
-__pycache__/
+# ============================================
+# Node.js / 前端相关
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+.nuxt/
+.cache/
+.vuepress/dist/
+.serverless/
+.fusebox/
+.dynamodb/
+.env.local
+.env.*.local
+.cache/
+.vite/
+.next/
+out/
+
+# ============================================
+# IDE 和编辑器
+# ============================================
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.project
+.pydevproject
+.settings/
+.classpath
+.c9/
+*.launch
+.sublime-workspace
+.sublime-project
+
+# ============================================
+# 操作系统相关
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ============================================
+# Docker 相关
+# ============================================
+docker-compose.override.yml
+
+# ============================================
+# 日志和临时文件
+# ============================================
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+*.swp
+.tmp/
+tmp/
+
+# ============================================
+# 编译和构建文件
+# ============================================
+*.o
+*.a
+*.out
+.gradle/
+build/
+target/
+dist/
+
+# ============================================
+# IDE 缓存
+# ============================================
+.eslintcache
+tsconfig.tsbuildinfo

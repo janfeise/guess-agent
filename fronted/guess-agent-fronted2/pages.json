@@ -1,0 +1,67 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/gamePlay/gamePlay",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/result/result",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/history/history",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/rules/rules",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "tabBar": {
+    "borderStyle": "black",
+    "color": "#5a6062",
+    "selectedColor": "#006c5a",
+    "backgroundColor": "#f8f9fa",
+    "height": "50px",
+    "list": [
+      {
+        "iconPath": "static/icon-home.png",
+        "selectedIconPath": "static/icon-home-active.png",
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "iconPath": "static/icon-history.png",
+        "selectedIconPath": "static/icon-history-active.png",
+        "pagePath": "pages/history/history",
+        "text": "历史"
+      },
+      {
+        "iconPath": "static/icon-rules.png",
+        "selectedIconPath": "static/icon-rules-active.png",
+        "pagePath": "pages/rules/rules",
+        "text": "规则"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarBackgroundColor": "#f8f9fa",
+    "navigationBarTextStyle": "black",
+    "backgroundTextStyle": "light",
+    "backgroundColor": "#f8f9fa"
+  }
+}

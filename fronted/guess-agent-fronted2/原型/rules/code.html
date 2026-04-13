@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html lang="zh"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HUNCH - 规则与指南</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(222, 227, 230, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#efdd89",
+                      "on-surface-variant": "#5a6062",
+                      "surface-container-high": "#e5e9eb",
+                      "surface-container-low": "#f1f4f5",
+                      "on-secondary-container": "#005971",
+                      "on-secondary": "#f2faff",
+                      "surface-tint": "#006c5a",
+                      "surface-variant": "#dee3e6",
+                      "secondary-fixed-dim": "#9bdefa",
+                      "error-container": "#fa746f",
+                      "surface-dim": "#d5dbdd",
+                      "on-tertiary-container": "#63570f",
+                      "on-secondary-fixed": "#004559",
+                      "secondary-container": "#bbe9ff",
+                      "tertiary-container": "#feec95",
+                      "on-error-container": "#6e0a12",
+                      "primary-dim": "#005e4e",
+                      "outline": "#767c7e",
+                      "surface": "#f8f9fa",
+                      "secondary-dim": "#005b73",
+                      "surface-container-lowest": "#ffffff",
+                      "primary-container": "#89f6da",
+                      "surface-container": "#ebeef0",
+                      "on-primary-fixed": "#00483b",
+                      "background": "#f8f9fa",
+                      "inverse-surface": "#0c0f10",
+                      "tertiary-fixed": "#feec95",
+                      "surface-container-highest": "#dee3e6",
+                      "on-tertiary-fixed-variant": "#6e6119",
+                      "on-primary": "#e4fff5",
+                      "on-tertiary": "#fff8ea",
+                      "outline-variant": "#adb3b5",
+                      "on-primary-container": "#005d4d",
+                      "primary-fixed-dim": "#7ae8cc",
+                      "on-tertiary-fixed": "#4f4400",
+                      "primary": "#006c5a",
+                      "on-error": "#fff7f6",
+                      "on-surface": "#2d3335",
+                      "on-background": "#2d3335",
+                      "on-primary-fixed-variant": "#006856",
+                      "surface-bright": "#f8f9fa",
+                      "secondary": "#1a6780",
+                      "inverse-primary": "#91ffe2",
+                      "on-secondary-fixed-variant": "#14637c",
+                      "tertiary": "#6c5f18",
+                      "error-dim": "#67040d",
+                      "inverse-on-surface": "#9b9d9e",
+                      "tertiary-dim": "#5f530b",
+                      "error": "#a83836",
+                      "primary-fixed": "#89f6da",
+                      "secondary-fixed": "#bbe9ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "1.5rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Plus Jakarta Sans"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          }
+        }
+      </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl no-border bg-gradient-to-b from-slate-50 to-transparent">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-screen-xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="text-emerald-700 active:scale-95 duration-200 transition-opacity hover:opacity-80">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-black text-emerald-900 tracking-widest font-headline">HUNCH</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-variant">
+<img alt="AI Assistant Avatar" data-alt="abstract artistic 3D rendering of a friendly AI avatar with soft teal and mint colors and ethereal lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBG01oXjwcpcpJ5uI7IkXR5Qxw4RAp-9y1iz7RqVXysc4TsY9ycJ-6WAE0fVbFreV4yUShww4nRtZeVdCqpE4GRiZNFBV1SO4R6ploM0uQZetrRn5Zh3R4vl9clJYVyCuDiusVPLTlEz2M_ngSAVB4kwXo7WyWjitj793Wl7p4tAvI95qeLbB7QGa9PKFCl5zWcrwKjSleovy2xn6CVNsbcaFmHtZ7QhDJtp9M4D2ASEyYeQo0OG-UqwlzF8HL3_BmsqcsS-x6cN3M"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-4xl mx-auto space-y-12">
+<!-- Hero Section -->
+<section class="space-y-4">
+<div class="inline-flex items-center px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container font-headline text-xs font-bold tracking-widest uppercase">
+            操作指南
+        </div>
+<h2 class="text-4xl md:text-5xl font-headline font-extrabold text-on-surface leading-tight">掌握猜词的 <span class="text-primary italic">艺术</span>。</h2>
+<p class="text-lg text-on-surface-variant max-w-2xl leading-relaxed">空灵向导正在等候。学会穿梭于语言迷宫，赢取属于你的胜利。</p>
+</section>
+<!-- Bento Grid: Phases -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Ask -->
+<div class="bg-surface-container-low p-8 rounded-xl space-y-4 flex flex-col items-start hover:bg-surface-container transition-colors group">
+<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+</div>
+<h3 class="text-xl font-headline font-bold text-on-surface">提问</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">用巧妙的问题询问 AI。尝试在不直接点破的情况下缩小概念范围。</p>
+</div>
+<!-- Guess -->
+<div class="bg-surface-container-low p-8 rounded-xl space-y-4 flex flex-col items-start hover:bg-surface-container transition-colors group">
+<div class="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="lightbulb">lightbulb</span>
+</div>
+<h3 class="text-xl font-headline font-bold text-on-surface">推测</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">当你确信时输入你的“直觉”。每一次错误的猜测都会增加挑战难度。</p>
+</div>
+<!-- Confirm -->
+<div class="bg-surface-container-low p-8 rounded-xl space-y-4 flex flex-col items-start hover:bg-surface-container transition-colors group">
+<div class="w-12 h-12 rounded-xl bg-tertiary-container flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="task_alt">task_alt</span>
+</div>
+<h3 class="text-xl font-headline font-bold text-on-surface">确认</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">向导将揭示真相。根据你的速度和精准度进行评分。</p>
+</div>
+</section>
+<!-- Asymmetric Layout: Rules & How to Play -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+<div class="space-y-8">
+<div class="space-y-4">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<h4 class="font-headline font-bold text-lg">游戏规则</h4>
+</div>
+<ul class="space-y-6">
+<li class="flex gap-4">
+<span class="text-primary-dim font-headline font-black text-2xl opacity-20">01</span>
+<div>
+<h5 class="font-bold text-on-surface">提问限制</h5>
+<p class="text-sm text-on-surface-variant">每局你只有 10 个提问名额。请谨慎使用，向导的回答非常精简。</p>
+</div>
+</li>
+<li class="flex gap-4">
+<span class="text-primary-dim font-headline font-black text-2xl opacity-20">02</span>
+<div>
+<h5 class="font-bold text-on-surface">禁止专有名词</h5>
+<p class="text-sm text-on-surface-variant">问题必须是概念性的。禁止询问具体姓名或特定地点。</p>
+</div>
+</li>
+<li class="flex gap-4">
+<span class="text-primary-dim font-headline font-black text-2xl opacity-20">03</span>
+<div>
+<h5 class="font-bold text-on-surface">最终推测</h5>
+<p class="text-sm text-on-surface-variant">在游戏结束和谜题揭晓前，你只有 3 次猜测机会。</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<!-- The Hunch Card (Instructional version) -->
+<div class="glass-card p-10 rounded-xl space-y-6 relative overflow-hidden">
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-tertiary/10 rounded-full blur-3xl"></div>
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-headline font-bold tracking-tight">向导的提示</span>
+</div>
+<p class="text-2xl font-headline font-bold text-on-surface leading-tight">“我是微风的无声伙伴，却能承载王国秘密的重量。”</p>
+<div class="pt-6">
+<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant mb-4">新手专业贴士</p>
+<div class="bg-surface-container-highest/50 p-4 rounded-lg">
+<p class="text-sm italic">“注意向导如何强调‘无声’和‘微风’。思考一下无形的力量或媒介。”</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Final Tips Section -->
+<section class="bg-primary text-on-primary p-8 md:p-12 rounded-xl relative overflow-hidden">
+<div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div class="space-y-4">
+<h4 class="text-3xl font-headline font-extrabold">来自架构师的建议</h4>
+<p class="opacity-80 leading-relaxed">AI 使用语义网络。尝试询问“用途”、“材质”或“来源”，以快速缩小可能性范围。</p>
+<button class="bg-primary-fixed-dim text-on-primary-fixed px-8 py-3 rounded-xl font-bold transition-transform active:scale-95 flex items-center gap-2 group">
+                        回到游戏
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="hidden md:block">
+<img alt="Abstract digital waves" class="rounded-xl shadow-2xl rotate-3 scale-110" data-alt="cinematic close-up of flowing digital waves in shades of emerald and teal with soft particles and bokeh lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmawgdxrBFeRpmBiDSOv-KHTdnpXOSMA1JBqbIwST-WsVec8AjCFpLF7M5jhS_O8MgU2NzpVNZ-4GS9zZ7PwcYKk3uWxVuOWRS7YdFW7A2TOTRm6jLiff1TwpMJnuvdtCEgiTKXeXfiXDOROW2ZplyMOtqrpRF7S6oOvZmPTwiPKQpACqjOBOaa9rDwF6WBVyVGt0O2KjQGRSNefckRAZCde18uKvKS0WXV4Whrb6A3guhX0cA3MPNPCEurLNbYPV_LMeJNJHDgpA"/>
+</div>
+</div>
+<!-- Decorative circle -->
+<div class="absolute -bottom-20 -left-20 w-64 h-64 bg-primary-dim rounded-full blur-[100px]"></div>
+</section>
+</main>
+<!-- Navigation Shell: 3 items as requested -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-slate-50 dark:bg-slate-950 z-50 rounded-t-[2rem] no-border border-t-[0.5px] border-emerald-500/10 shadow-[0_-12px_40px_rgba(45,51,53,0.06)]">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 px-5 py-2 hover:text-emerald-600 transition-all duration-300 active:translate-y-[-2px]" href="#">
+<span class="material-symbols-outlined" data-icon="videogame_asset">videogame_asset</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-1">首页</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 px-5 py-2 hover:text-emerald-600 transition-all duration-300 active:translate-y-[-2px]" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-1">历史</span>
+</a>
+<!-- ACTIVE TAB: Rules -->
+<a class="flex flex-col items-center justify-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 rounded-2xl px-5 py-2 transition-all active:translate-y-[-2px]" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-['Inter'] text-[11px] font-semibold uppercase tracking-wider mt-1">规则</span>
+</a>
+</nav>
+</body></html>
