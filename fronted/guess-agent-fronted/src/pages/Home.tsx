@@ -21,7 +21,7 @@ interface RecentGame {
 
 export default function Home({ onStartGame, onNavigate }: HomeProps) {
   const [startWord, setStartWord] = useState("");
-  const [difficulty, setDifficulty] = useState("普通");
+  const [difficulty, setDifficulty] = useState("中等");
   const [recentGames, setRecentGames] = useState<RecentGame[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState<"online" | "offline" | "checking">(
@@ -153,7 +153,7 @@ export default function Home({ onStartGame, onNavigate }: HomeProps) {
                 难度等级
               </label>
               <div className="flex p-1.5 bg-surface-container-low rounded-2xl">
-                {["简单", "普通", "困难"].map((d) => (
+                {["普通", "中等", "困难"].map((d) => (
                   <button
                     key={d}
                     onClick={() => setDifficulty(d)}

@@ -14,9 +14,11 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("home");
   const [gameConfig, setGameConfig] = useState({
     word: "",
-    difficulty: "普通",
+    difficulty: "中等",
   });
   const [gameStats, setGameStats] = useState({ rounds: 0, time: "" });
+
+  const [gamePageTitle, setGamePageTitle] = useState("Round 0"); // 游戏页面的标题
 
   const handleStartGame = (word: string, difficulty: string) => {
     setGameConfig({ word, difficulty });
@@ -26,6 +28,14 @@ export default function App() {
   const handleWin = (stats: { rounds: number; time: string }) => {
     setGameStats(stats);
     setCurrentPage("result");
+  };
+
+  const getTitle = () => {
+    if (currentPage === "game") {
+      return gamePageTitle;
+    }
+
+    return "";
   };
 
   const renderPage = () => {
@@ -40,6 +50,7 @@ export default function App() {
             difficulty={gameConfig.difficulty}
             userWord={gameConfig.word}
             onWin={handleWin}
+            setGamePageTitle={setGamePageTitle}
           />
         );
       case "history":
@@ -63,11 +74,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <TopAppBar />
+      <TopAppBar title={getTitle()} />
 
-      <main className="flex-1 pt-24 pb-16 px-6 max-w-screen-md mx-auto w-full">
+      <main className="flex-1 min-h-0 px-6 max-w-screen-md mx-auto w-full">
         <AnimatePresence mode="wait">
           <motion.div
+            className="h-screen w-full"
             key={currentPage}
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}

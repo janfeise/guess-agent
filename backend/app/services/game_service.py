@@ -323,7 +323,9 @@ class GameService:
 		phase = metadata.get("phase", "user_turn")
 		history = game.get("history", [])
 
-		intent_result = await self.agent.parse_user_intent(question, history)
+		# 获取解密后的系统词用于意图识别
+		system_word = self.reveal_target_word(game, self.settings)
+		intent_result = await self.agent.parse_user_intent(question, history, system_word)
 		intent = intent_result.get("intent", "invalid")
 
 		# 轮次锁校验：根据 phase 判断当前允许的意图

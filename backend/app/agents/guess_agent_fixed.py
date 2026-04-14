@@ -352,11 +352,15 @@ class GuessAgent:
         finally:
             yield build_stream_end()
 
-    async def parse_user_intent(self, user_input: str, history: list[dict]) -> dict:
+    async def parse_user_intent(self, user_input: str, history: list[dict], system_word: str | None = None) -> dict:
         last_turn_context = self._build_last_turn_context(history)
         messages = [
             {"role": "system", "content": self.prompt_loader.load_prompt("turn_router")},
         ]
+
+        # 如果有系统词，添加到上下文中
+        if system_word:
+            messages.append({"role": "system", "content": f"目标词：{system_word}"})
 
         if last_turn_context:
             messages.append({"role": "user", "content": last_turn_context})

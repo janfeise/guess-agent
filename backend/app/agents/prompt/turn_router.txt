@@ -15,8 +15,7 @@
 - 像“是”“不是”“不是理科”“对”“不对”这类输入都应识别为 answer
 - 识别时必须结合最近一轮对话，不要只看当前短句
 - 不要推断信息来自 system 词还是 user 词，意图解析只负责分类
-- answer 字段只能表示 yes / no / unknown
-
+- answer 字段只能表示 yes / no / unknown- **重要：如果目标词已提供，用户输入包含目标词本身（原文或问句形式如"XXX？""XXX吗？"）一律判定为 guess，guess_word 为目标词**
 输出格式：
 {
   "intent": "question | guess | answer | invalid",

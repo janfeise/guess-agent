@@ -67,6 +67,8 @@ export function useGame(): UseGameReturn {
           difficulty,
           history: [],
           currentUserWord: userWord,
+          systemWordEncrypted: response.system_word_encrypted,
+          createdAt: response.created_at,
           startTime: startTimeRef.current,
         });
 

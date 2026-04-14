@@ -86,6 +86,8 @@ export interface GameState {
   difficulty: string;
   history: HistoryItem[];
   currentUserWord?: string;
+  systemWordEncrypted?: string;
+  createdAt?: string;
   startTime?: number;
 }
 

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#fff8ea",
+                    "on-surface": "#2d3335",
+                    "primary-fixed": "#89f6da",
+                    "surface-container-low": "#f1f4f5",
+                    "inverse-on-surface": "#9b9d9e",
+                    "primary": "#006c5a",
+                    "secondary-container": "#bbe9ff",
+                    "primary-container": "#89f6da",
+                    "on-tertiary-fixed-variant": "#6e6119",
+                    "surface-container-highest": "#dee3e6",
+                    "outline": "#767c7e",
+                    "surface-container": "#ebeef0",
+                    "surface-container-high": "#e5e9eb",
+                    "on-surface-variant": "#5a6062",
+                    "surface-dim": "#d5dbdd",
+                    "error-dim": "#67040d",
+                    "surface-variant": "#dee3e6",
+                    "on-secondary-fixed-variant": "#14637c",
+                    "error": "#a83836",
+                    "on-secondary": "#f2faff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface": "#f8f9fa",
+                    "on-tertiary-fixed": "#4f4400",
+                    "tertiary": "#6c5f18",
+                    "tertiary-container": "#feec95",
+                    "on-secondary-container": "#005971",
+                    "secondary-fixed-dim": "#9bdefa",
+                    "secondary-dim": "#005b73",
+                    "outline-variant": "#adb3b5",
+                    "inverse-surface": "#0c0f10",
+                    "secondary-fixed": "#bbe9ff",
+                    "on-error": "#fff7f6",
+                    "on-primary-fixed-variant": "#006856",
+                    "inverse-primary": "#91ffe2",
+                    "error-container": "#fa746f",
+                    "on-tertiary-container": "#63570f",
+                    "surface-bright": "#f8f9fa",
+                    "surface-tint": "#006c5a",
+                    "primary-dim": "#005e4e",
+                    "on-secondary-fixed": "#004559",
+                    "background": "#f8f9fa",
+                    "tertiary-dim": "#5f530b",
+                    "on-primary": "#e4fff5",
+                    "secondary": "#1a6780",
+                    "on-background": "#2d3335",
+                    "tertiary-fixed": "#feec95",
+                    "primary-fixed-dim": "#7ae8cc",
+                    "on-error-container": "#6e0a12",
+                    "tertiary-fixed-dim": "#efdd89",
+                    "on-primary-fixed": "#00483b",
+                    "on-primary-container": "#005d4d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "2xl": "1rem",
+                    "3xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 h-16 bg-emerald-50/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm dark:shadow-none">
+<div class="flex items-center gap-3">
+<button class="p-2 transition-all duration-300 ease-in-out active:scale-95 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/30 rounded-full">
+<span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400" data-icon="info">info</span>
+</button>
+<h1 class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300 font-['Plus_Jakarta_Sans'] tracking-tight">Intel Hub</h1>
+</div>
+<button class="p-2 transition-all duration-300 ease-in-out active:scale-95 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/30 rounded-full">
+<span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400" data-icon="settings">settings</span>
+</button>
+</header>
+<!-- Main Content Canvas (Background Game State) -->
+<main class="pt-20 pb-32 px-6 h-screen overflow-y-auto scrollbar-hide">
+<div class="grid grid-cols-1 gap-6">
+<!-- Game Board Placeholder -->
+<div class="bg-surface-container-low rounded-3xl p-8 aspect-square flex flex-col items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary-fixed/20 to-transparent"></div>
+<span class="material-symbols-outlined text-primary text-6xl mb-4" data-icon="smart_toy">smart_toy</span>
+<p class="text-on-surface-variant font-medium text-center">正在对局中...</p>
+</div>
+<!-- Stats Card -->
+<div class="bg-surface-container-lowest rounded-3xl p-6 shadow-[0_12px_40px_rgba(45,51,53,0.06)]">
+<h3 class="font-headline font-bold text-lg mb-4 text-primary">当前对局状态</h3>
+<div class="flex justify-between items-center">
+<div class="text-center px-4">
+<p class="text-xs text-on-surface-variant uppercase tracking-wider mb-1">已用回合</p>
+<p class="text-2xl font-headline font-extrabold">08</p>
+</div>
+<div class="h-8 w-px bg-surface-container-highest"></div>
+<div class="text-center px-4">
+<p class="text-xs text-on-surface-variant uppercase tracking-wider mb-1">信任值</p>
+<p class="text-2xl font-headline font-extrabold text-primary">85%</p>
+</div>
+<div class="h-8 w-px bg-surface-container-highest"></div>
+<div class="text-center px-4">
+<p class="text-xs text-on-surface-variant uppercase tracking-wider mb-1">剩余提示</p>
+<p class="text-2xl font-headline font-extrabold">03</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Round Insight NavigationDrawer (Overlay State) -->
+<!-- Semi-transparent Overlay -->
+<div class="fixed inset-0 bg-on-surface/20 backdrop-blur-sm z-[55]"></div>
+<aside class="fixed inset-y-0 left-0 w-[85%] md:w-80 z-[60] bg-slate-50 dark:bg-slate-900 rounded-r-2xl h-full shadow-2xl flex flex-col transform transition-transform duration-300">
+<!-- Drawer Header -->
+<div class="p-6 pb-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400" data-icon="timeline">timeline</span>
+<h2 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-emerald-700 dark:text-emerald-300">回合历史</h2>
+</div>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-500" data-icon="close">close</span>
+</button>
+</div>
+<!-- Perspective Switcher (Tabs) -->
+<div class="px-6 mb-6">
+<div class="flex bg-surface-container-low dark:bg-slate-800 p-1 rounded-2xl">
+<button class="flex-1 py-2 text-sm font-semibold rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 shadow-sm transition-all">全部</button>
+<button class="flex-1 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">用户视角</button>
+<button class="flex-1 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">系统视角</button>
+</div>
+</div>
+<!-- History List -->
+<div class="flex-1 overflow-y-auto px-6 space-y-4 pb-8 scrollbar-hide">
+<!-- Round 08 Item -->
+<div class="relative pl-6 border-l-2 border-emerald-100 dark:border-emerald-900/30">
+<div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-emerald-500 ring-4 ring-slate-50 dark:ring-slate-900"></div>
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-headline font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter">回合 08</span>
+<span class="text-[10px] text-slate-400 font-medium">3分钟前</span>
+</div>
+<div class="bg-white dark:bg-slate-800/50 p-4 rounded-2xl shadow-sm space-y-2">
+<div class="flex gap-2">
+<span class="text-xs font-bold text-on-surface px-2 py-0.5 bg-surface-container rounded-lg h-fit">用户</span>
+<p class="text-sm text-on-surface-variant leading-relaxed">询问关于流动性的问题</p>
+</div>
+<div class="flex gap-2">
+<span class="text-xs font-bold text-primary px-2 py-0.5 bg-primary-container/30 rounded-lg h-fit">AI</span>
+<p class="text-sm text-on-surface-variant leading-relaxed">已确认为核心属性</p>
+</div>
+</div>
+</div>
+<!-- Round 07 Item -->
+<div class="relative pl-6 border-l-2 border-emerald-100 dark:border-emerald-900/30">
+<div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-slate-300 dark:bg-slate-700 ring-4 ring-slate-50 dark:ring-slate-900"></div>
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-headline font-bold text-slate-400 uppercase tracking-tighter">回合 07</span>
+<span class="text-[10px] text-slate-400 font-medium">12分钟前</span>
+</div>
+<div class="bg-white dark:bg-slate-800/50 p-4 rounded-2xl shadow-sm space-y-2">
+<div class="flex gap-2">
+<span class="text-xs font-bold text-tertiary px-2 py-0.5 bg-tertiary-container/30 rounded-lg h-fit">系统</span>
+<p class="text-sm text-on-surface-variant leading-relaxed">猜测词语为 <span class="font-bold text-on-surface">"Oxygen"</span></p>
+</div>
+<div class="flex gap-2">
+<span class="text-xs font-bold text-error px-2 py-0.5 bg-error-container/20 rounded-lg h-fit">结果</span>
+<p class="text-sm text-on-surface-variant leading-relaxed">判定错误 (词性不符)</p>
+</div>
+</div>
+</div>
+<!-- Round 06 Item -->
+<div class="relative pl-6 border-l-2 border-emerald-100 dark:border-emerald-900/30">
+<div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-800 ring-4 ring-slate-50 dark:ring-slate-900"></div>
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-headline font-bold text-slate-400 uppercase tracking-tighter">回合 06</span>
+<span class="text-[10px] text-slate-400 font-medium">20分钟前</span>
+</div>
+<div class="bg-white/50 dark:bg-slate-800/20 p-4 rounded-2xl space-y-2">
+<p class="text-sm text-on-surface-variant italic">用户确认了词汇的物质形态为“气态”</p>
+</div>
+</div>
+</div>
+<!-- Drawer Footer Info -->
+<div class="p-6 bg-emerald-50/50 dark:bg-emerald-950/20 mt-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-emerald-600" data-icon="analytics">analytics</span>
+<div>
+<p class="text-xs font-bold text-emerald-800 dark:text-emerald-200">系统洞察</p>
+<p class="text-[11px] text-emerald-700/70 dark:text-emerald-400/70">当前系统锁定范围已缩小至 12 个词汇</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-6 pb-6 pt-3 bg-white/90 dark:bg-slate-950/90 backdrop-blur-lg shadow-[0_-4px_20px_rgba(0,0,0,0.04)] rounded-t-3xl md:hidden">
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-emerald-500 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="home">home</span>
+<span class="font-['Inter'] text-xs font-medium">首页</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-200 rounded-2xl px-5 py-1 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] scale-110">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="history" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-['Inter'] text-xs font-medium">历史</span>
+</div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-emerald-500 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-2xl mb-1" data-icon="gavel">gavel</span>
+<span class="font-['Inter'] text-xs font-medium">规则</span>
+</div>
+</nav>
+</body></html>

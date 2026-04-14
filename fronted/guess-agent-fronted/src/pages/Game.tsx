@@ -1,30 +1,38 @@
-import { Send, Bot, Sparkles } from "lucide-react";
+import { Send, Bot, History as HistoryIcon } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useRef, useEffect } from "react";
 import ChatBubble from "@/src/components/ChatBubble";
-import HunchCard from "@/src/components/HunchCard";
 import { useGame } from "@/src/hooks/useGame";
+import GameDrawer, { GameDrawerTab } from "@/src/components/game/GameDrawer";
 
 interface GameProps {
   difficulty: string;
   userWord: string;
   onWin: (stats: { rounds: number; time: string }) => void;
+  setGamePageTitle: (title: string) => void; // 用于设置游戏页面标题
 }
 
-export default function Game({ difficulty, userWord, onWin }: GameProps) {
+export default function Game({
+  difficulty,
+  userWord,
+  onWin,
+  setGamePageTitle,
+}: GameProps) {
   const { gameState, messages, isLoading, error, startGame, submitUserInput } =
     useGame();
 
   const [inputVal, setInputVal] = useState("");
   const [gameStarted, setGameStarted] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [drawerTab, setDrawerTab] = useState<GameDrawerTab>("assistant");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 映射难度等级
   const mapDifficulty = (diff: string): "easy" | "medium" | "hard" => {
     const diffMap: Record<string, "easy" | "medium" | "hard"> = {
-      简单: "easy",
+      普通: "easy",
       easy: "easy",
-      普通: "medium",
+      中等: "medium",
       medium: "medium",
       困难: "hard",
       hard: "hard",
@@ -95,55 +103,51 @@ export default function Game({ difficulty, userWord, onWin }: GameProps) {
   // 判断是否等待用户对系统猜测的判断
   const isAwaitingJudgement = currentPhase === "awaiting_judgement";
 
+  useEffect(() => {
+    setGamePageTitle(`Round ${currentRound}`);
+  }, [currentRound]);
+
+  const openDrawer = (tab: GameDrawerTab) => {
+    setDrawerTab(tab);
+    setIsDrawerOpen(true);
+  };
+
   return (
-    <div className="flex flex-col h-[calc(100dvh-180px)]">
+    <div className="flex h-full flex-col overflow-hidden pt-16">
       {/* Status Bar */}
-      <section className="px-1 py-4">
-        <div className="flex items-center justify-between gap-4 py-4 px-6 bg-surface-container-low rounded-3xl">
-          <div className="flex items-center gap-8">
-            <div className="flex flex-col">
-              <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">
-                当前进度
-              </span>
-              <span className="font-headline font-extrabold text-primary text-xl">
-                第 {currentRound} 轮
-              </span>
-            </div>
-            <div className="h-8 w-[1px] bg-outline-variant/20" />
-            <div className="flex flex-col">
-              <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">
-                挑战难度
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="font-headline font-bold text-on-surface text-sm">
-                  {difficulty}
-                </span>
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-outline-variant/30" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-primary-container px-4 py-2 rounded-full hidden sm:block">
-            <span className="text-[10px] font-bold text-on-primary-container uppercase tracking-widest">
-              {isUserTurn
-                ? "你的回合"
-                : isAwaitingAnswer
-                  ? "等待你的回答"
-                  : isAwaitingJudgement
-                    ? "等待你的判断"
-                    : "游戏进行中"}
-            </span>
-          </div>
+      <section className="px-1 py-4 shrink-0">
+        <div className="flex items-center gap-2 rounded-2xl bg-surface-container-low px-1 py-1 shadow-sm w-fit">
+          <button
+            type="button"
+            onClick={() => openDrawer("assistant")}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all duration-200 ${
+              isDrawerOpen && drawerTab === "assistant"
+                ? "bg-primary text-on-primary shadow-[0_8px_20px_rgba(0,108,90,0.18)]"
+                : "bg-surface hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+            }`}
+          >
+            <Bot className="h-3.5 w-3.5" />
+            辅助面板
+          </button>
+          <button
+            type="button"
+            onClick={() => openDrawer("history")}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all duration-200 ${
+              isDrawerOpen && drawerTab === "history"
+                ? "bg-primary text-on-primary shadow-[0_8px_20px_rgba(0,108,90,0.18)]"
+                : "bg-surface hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
+            }`}
+          >
+            <HistoryIcon className="h-3.5 w-3.5" />
+            回合历史
+          </button>
         </div>
       </section>
 
       {/* Chat Area */}
       <main
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-1 py-6 space-y-8 scroll-smooth"
+        className="flex-1 min-h-0 overflow-y-auto px-1 py-6 space-y-8 scroll-smooth"
       >
         <AnimatePresence initial={false}>
           {messages.map((msg, i) => (
@@ -209,14 +213,14 @@ export default function Game({ difficulty, userWord, onWin }: GameProps) {
       </main>
 
       {/* Input Area */}
-      <footer className="pt-4 pb-2">
+      <footer className="pt-4 pb-2 shrink-0">
         {error && (
           <div className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-6">
           <div className="flex-1 relative">
             <input
               value={inputVal}
@@ -243,30 +247,18 @@ export default function Game({ difficulty, userWord, onWin }: GameProps) {
             disabled={isLoading || !inputVal.trim()}
             className="btn-primary-gradient h-14 w-14 rounded-2xl flex items-center justify-center disabled:opacity-50"
           >
-            <SendIcon className="w-6 h-6 fill-current" />
+            <Send className="h-6 w-6" />
           </button>
         </div>
-
-        {/* User Word Display */}
-        {gameState?.currentUserWord && (
-          <div className="mb-3 px-6 py-3 bg-primary-container/10 rounded-2xl flex items-center justify-between mt-5">
-            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
-              你的词
-            </span>
-            <span className="text-sm font-headline font-bold text-primary">
-              {gameState.currentUserWord}
-            </span>
-          </div>
-        )}
       </footer>
-    </div>
-  );
-}
 
-function SendIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24">
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-    </svg>
+      <GameDrawer
+        isOpen={isDrawerOpen}
+        activeTab={drawerTab}
+        onClose={() => setIsDrawerOpen(false)}
+        onChangeTab={setDrawerTab}
+        gameState={gameState}
+      />
+    </div>
   );
 }
