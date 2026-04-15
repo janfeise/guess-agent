@@ -1,0 +1,105 @@
+.drawer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0;
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 108, 90, 0.12),
+    var(--surface),
+    var(--surface)
+  );
+  padding: 1.25rem 1.5rem;
+  flex-shrink: 0;
+}
+
+.drawerTitle {
+  font-family: "Headline";
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary, #006c5a);
+  margin-top: 0.5rem;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--surface-container-low, #f5f5f5);
+  color: var(--on-surface-variant, #757575);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.closeButton:active {
+  transform: scale(0.95);
+}
+
+.drawerContent {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabsContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.25rem;
+  background-color: var(--surface-container-low, #f5f5f5);
+  border-radius: 1.5rem;
+  flex-shrink: 0;
+}
+
+.tabButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--on-surface-variant, #757575);
+  background-color: transparent;
+}
+
+.tabButton:hover:not(.active) {
+  color: var(--on-surface, #1f1f1f);
+}
+
+.tabButton.active {
+  background-color: var(--primary, #006c5a);
+  color: white;
+  box-shadow: 0 10px 22px rgba(0, 108, 90, 0.22);
+}
+
+.panelWrapper {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 1rem;
+}
+
+.tabIcon {
+  width: 1rem;
+  height: 1rem;
+}

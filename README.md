@@ -1,6 +1,6 @@
 # Guess Agent
 
-一个基于AI代理的智能猜词游戏平台，融合LLM能力进行实时交互和答案验证。
+猜词游戏，每轮互相提问，通过提问猜词对方的词，谁先猜中获胜！你的对手是 AI!
 
 ## 项目结构
 
@@ -30,6 +30,7 @@ guess-agent/
 ### 后端部署
 
 1. 创建虚拟环境
+
 ```bash
 python -m venv .venv
 .venv\Scripts\activate  # Windows
@@ -37,18 +38,21 @@ source .venv/bin/activate  # Linux/macOS
 ```
 
 2. 安装依赖
+
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
 3. 配置环境变量
+
 ```bash
 cp .env.example .env
 # 编辑 .env 文件，配置数据库、API key 等
 ```
 
 4. 运行服务
+
 ```bash
 python app/main.py
 ```
@@ -62,6 +66,7 @@ docker-compose -f docker/docker-compose.yml up -d
 ### 前端开发
 
 **React 版本：**
+
 ```bash
 cd fronted/guess-agent-fronted
 npm install
@@ -69,6 +74,7 @@ npm run dev
 ```
 
 **Vue 版本：**
+
 ```bash
 cd fronted/guess-agent-fronted2
 npm install
@@ -86,18 +92,21 @@ npm run dev
 ## 主要技术栈
 
 **后端：**
+
 - Python 3.8+
 - FastAPI / Flask
 - MongoDB
 - LLM API (OpenAI / 其他)
 
 **前端：**
+
 - React 18 + TypeScript
 - Vue 3
 - UniApp (跨端)
 - Vite
 
 **基础设施：**
+
 - Docker
 - Docker Compose
 

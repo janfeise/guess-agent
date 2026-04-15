@@ -38,13 +38,13 @@ function formatCreatedAt(createdAt?: string) {
   const date = new Date(createdAt);
   if (Number.isNaN(date.getTime())) return createdAt;
 
-  return date.toLocaleString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hour = String(date.getHours() + 8).padStart(2, "0");
+  const minute = String(date.getMinutes()).padStart(2, "0");
+
+  return `${year}/${month}/${day} ${hour}:${minute}`;
 }
 
 export default function GameAssistantPanel({
@@ -53,26 +53,23 @@ export default function GameAssistantPanel({
 }: GameAssistantPanelProps) {
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
-      <div className="rounded-[2rem] bg-gradient-to-br from-primary to-primary-dim px-5 py-5 text-on-primary shadow-[0_18px_40px_rgba(0,108,90,0.22)]">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm">
-            <Bot className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-white/70">
-              辅助面板
-            </p>
-            <h3 className="mt-1 font-headline text-xl font-extrabold">
-              对局概览
-            </h3>
-          </div>
+      <div className="grid min-h-0 gap-3 overflow-y-auto pb-1">
+        <div className="rounded-[1.25rem] bg-white px-5 py-4 h-[100px] w-full overflow-hidden">
+          <p className="text-[12px] font-bold uppercase tracking-widest text-on-surface-variant/60">
+            用户词
+          </p>
+          <p className="mt-2 w-full break-words text-3xl font-headline font-bold text-primary">
+            {gameState?.currentUserWord || "暂无"}
+          </p>
         </div>
-        <p className="mt-4 text-sm leading-relaxed text-white/80">
-          系统词已加密隐藏，仅展示当前对局的公开信息与关键状态。
-        </p>
-        <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/80">
-          <Sparkles className="h-3.5 w-3.5" />
-          主题色统一视觉
+
+        <div className="rounded-[1.25rem] bg-white px-5 py-4 h-[100px] w-full overflow-hidden pb-5">
+          <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">
+            加密系统词
+          </p>
+          <p className="mt-2 w-full break-words text-xs font-headline font-bold text-on-surface-variant/30">
+            {gameState?.systemWordEncrypted || "暂无"}
+          </p>
         </div>
       </div>
 
@@ -82,7 +79,7 @@ export default function GameAssistantPanel({
             对局轮次
           </p>
           <p className="mt-2 font-headline text-3xl font-extrabold text-primary">
-            {gameState?.roundCount ?? 0}
+            <span className="text-2xl">Round</span> {gameState?.roundCount ?? 0}
           </p>
         </div>
         <div className="rounded-[1.5rem] bg-surface-container-low p-4">
@@ -111,33 +108,13 @@ export default function GameAssistantPanel({
         </div>
       </div>
 
-      <div className="grid min-h-0 gap-3 overflow-y-auto pb-1">
-        <div className="rounded-[1.75rem] bg-surface-container-low px-5 py-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
-            用户词
-          </p>
-          <p className="mt-2 break-words text-lg font-headline font-bold text-primary">
-            {gameState?.currentUserWord || "暂无"}
-          </p>
-        </div>
-
-        <div className="rounded-[1.75rem] bg-surface-container-low px-5 py-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
-            系统词加密数据
-          </p>
-          <p className="mt-2 break-all rounded-2xl bg-surface px-4 py-3 text-[12px] leading-relaxed text-on-surface-variant">
-            {gameState?.systemWordEncrypted || "暂无"}
-          </p>
-        </div>
-
-        <div className="rounded-[1.75rem] bg-surface-container-low px-5 py-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
-            对局创建时间
-          </p>
-          <p className="mt-2 font-headline text-base font-bold text-on-surface">
-            {formatCreatedAt(gameState?.createdAt)}
-          </p>
-        </div>
+      <div className="rounded-[1.75rem] bg-surface-container-low px-5 py-4">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
+          对局创建时间
+        </p>
+        <p className="mt-2 font-headline text-base font-bold text-on-surface">
+          {formatCreatedAt(gameState?.createdAt)}
+        </p>
       </div>
     </div>
   );

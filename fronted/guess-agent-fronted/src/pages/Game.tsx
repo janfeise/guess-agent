@@ -116,7 +116,7 @@ export default function Game({
     <div className="flex h-full flex-col overflow-hidden pt-16">
       {/* Status Bar */}
       <section className="px-1 py-4 shrink-0">
-        <div className="flex items-center gap-2 rounded-2xl bg-surface-container-low px-1 py-1 shadow-sm w-fit">
+        <div className="flex items-center gap-2  px-1 py-1  w-fit">
           <button
             type="button"
             onClick={() => openDrawer("assistant")}

@@ -195,7 +195,9 @@ export default function GameHistoryPanel({
               结果
             </span>
             <p className="text-sm leading-relaxed text-on-surface-variant">
-              {item.answer_text || item.hint || formatLabelText(item.answer_label)}
+              {item.answer_text ||
+                item.hint ||
+                formatLabelText(item.answer_label)}
             </p>
           </div>
         )}
@@ -255,7 +257,9 @@ export default function GameHistoryPanel({
                   const isUser = item.actor === "user";
 
                   return (
-                    <div key={`${item.round_no}-${item.turn_type}-${item.actor}`}>
+                    <div
+                      key={`${item.round_no}-${item.turn_type}-${item.actor}`}
+                    >
                       <div className="mb-2 flex items-center justify-between px-1">
                         <span
                           className={`text-sm font-headline font-bold uppercase tracking-tighter ${
@@ -336,7 +340,8 @@ export default function GameHistoryPanel({
               <div>
                 <p className="text-xs font-bold text-primary">系统洞察</p>
                 <p className="text-[11px] leading-relaxed text-primary/70">
-                  当前已记录 {sortedHistory.length} 个回合，点击任意卡片可查看展开内容。
+                  当前已记录 {sortedHistory.length}{" "}
+                  个回合，点击任意卡片可查看展开内容。
                 </p>
               </div>
             </div>
