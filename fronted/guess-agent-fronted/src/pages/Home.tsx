@@ -127,7 +127,7 @@ export default function Home({
   };
 
   return (
-    <div className="space-y-12 pb-12">
+    <div className="space-y-12 pb-20">
       {/* API 状态指示器 */}
       {apiStatus !== "online" && (
         <motion.div
@@ -267,7 +267,7 @@ export default function Home({
         </section>
 
         {/* How to Play */}
-        <section className="bg-tertiary-container/20 rounded-[2rem] p-6 space-y-4 relative overflow-hidden">
+        <section className="bg-tertiary-container/20 rounded-[2rem] p-6 space-y-4 relative overflow-hidden mb-20">
           <h3 className="font-bold text-lg flex items-center gap-2 font-headline">
             <Lightbulb className="w-5 h-5 text-tertiary" />
             玩法说明

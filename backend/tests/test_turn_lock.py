@@ -177,7 +177,7 @@ async def test_turn_lock_guess_confirmation_finishes_game():
             "phase": "waiting_answer",
             "next_actor": "user",
             "expected_turn_type": "answer",
-            "pending_question": "这个人是唐太宗李世民吗？",
+            "pending_guess": "唐太宗李世民",
         }
     }
 
@@ -197,6 +197,56 @@ async def test_turn_lock_guess_confirmation_finishes_game():
     assert result.get("status") == "finished"
     assert result.get("result") == "agent_win"
     assert result.get("message") == "系统猜测正确！游戏结束"
+
+
+@pytest.mark.asyncio
+async def test_turn_lock_regular_question_yes_does_not_finish_game():
+    """测试用户回答普通系统问题时不会误判为系统猜词确认"""
+    from app.services.game_service import GameService
+
+    mock_settings = MagicMock()
+    mock_agent = AsyncMock()
+    mock_repository = AsyncMock()
+    mock_memory_policy = MagicMock()
+
+    service = GameService(
+        settings=mock_settings,
+        agent=mock_agent,
+        repository=mock_repository,
+        memory_policy=mock_memory_policy,
+    )
+
+    game = {
+        "game_id": "test_4b",
+        "status": "active",
+        "history": [],
+        "round_count": 2,
+        "metadata": {
+            "phase": "waiting_answer",
+            "next_actor": "user",
+            "expected_turn_type": "answer",
+            "pending_question": "它是人造物品吗？",
+            "pending_guess": "",
+        }
+    }
+
+    mock_agent.parse_user_intent.return_value = {
+        "intent": "answer",
+        "answer": "yes",
+        "normalized_text": "yes",
+        "confidence": 0.95,
+        "reason": "user_answered_affirmatively",
+    }
+
+    mock_repository.get_game.return_value = game
+
+    result = await service.submit_turn("test_4b", "是的", "agent", "input")
+
+    mock_repository.finish_game.assert_not_called()
+    mock_repository.update_game_state.assert_called_once()
+    assert result.get("status") == "active"
+    assert result.get("phase") == "user_turn"
+    assert result.get("message") == "回答已记录，现在轮到你提问或猜词。"
 
 
 @pytest.mark.asyncio

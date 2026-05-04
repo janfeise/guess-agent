@@ -758,9 +758,10 @@ class GameService:
 
 	async def _handle_user_answer(self, game: dict, user_input: str, history: list[dict], intent_result: dict | None = None):
 		resolved_answer = self._resolve_user_answer(user_input, intent_result)
-		pending_question = game.get("metadata", {}).get("pending_question", "")
+		metadata = game.get("metadata", {}) or {}
+		pending_guess = (metadata.get("pending_guess") or "").strip()
 
-		if resolved_answer == "yes" and self._is_guess_confirmation_question(pending_question):
+		if resolved_answer == "yes" and pending_guess:
 			now = datetime.now()
 			await self.repository.finish_game(game["game_id"], reason="agent_win_guessed_correctly", finished_at=now)
 			return {

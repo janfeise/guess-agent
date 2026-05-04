@@ -25,19 +25,15 @@ class GameApiClient {
 
   constructor(baseURL?: string) {
     // 开发环境下使用相对路径以启用 Vite 代理
-    // 生产环境下使用环境变量或完整 URL
+    // 生产环境下优先使用环境变量，否则默认走同源代理路径
     let apiUrl = baseURL;
 
     if (!apiUrl) {
       const envUrl = (import.meta as any).env?.VITE_API_BASE_URL;
       if (envUrl) {
         apiUrl = envUrl;
-      } else if ((import.meta as any).env?.DEV) {
-        // 开发环境：使用相对路径，让 Vite 代理处理
-        apiUrl = "/api/v1";
       } else {
-        // 生产环境：默认基于当前域名
-        apiUrl = `${window.location.origin}/api/v1`;
+        apiUrl = "/api/v1";
       }
     }
 
