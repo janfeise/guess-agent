@@ -1,14 +1,13 @@
-# 游戏核心：猜数字游戏agent
+# 游戏核心：猜词游戏 agent
 
-# 导入日志模块
+import json
 import logging
+import re
 
-# 导入 langchain openai 模块中的 ChatOpenAI 类，用于与 OpenAI 的聊天模型进行交互
 from langchain_openai import ChatOpenAI
 
-# 导入 utils 的各个模块
-from .utils.prompt_loader import PromptLoader
 from .utils.memory_policy import MemoryPolicy
+from .utils.prompt_loader import PromptLoader
 from .utils.streaming import (
     build_stream_chunk,
     build_stream_end,
@@ -19,8 +18,9 @@ from ..core.subject_pool import SubjectPool
 
 logger = logging.getLogger(__name__)
 
+
 class GuessAgent:
-    def __init__(self, settings, prompt_loader, memory_policy):
+    def __init__(self, settings, prompt_loader: PromptLoader, memory_policy: MemoryPolicy):
         self.settings = settings
         self.prompt_loader = prompt_loader
         self.memory_policy = memory_policy
@@ -54,13 +54,11 @@ class GuessAgent:
         return self.agent_model
 
     def _build_messages(self, question: str, history: list[dict], mode: str):
-        # 构建agent模型的输入消息列表，包含系统提示、历史对话和当前问题
         system_prompt = self._load_prompt(mode)
         recent_history = self.memory_policy.build_recent_history(history)
         summary = self.memory_policy.build_summary(history)
 
-        messages: list[dict] = []
-        messages.append({"role": "system", "content": system_prompt})
+        messages: list[dict] = [{"role": "system", "content": system_prompt}]
 
         if summary:
             messages.append({"role": "system", "content": f"历史对话摘要：{summary}"})
@@ -76,19 +74,283 @@ class GuessAgent:
         messages.append({"role": "user", "content": question})
         return messages
 
+    @staticmethod
+    def _normalize_qa_answer(answer_text: str | None) -> str:
+        normalized_text = GuessAgent._normalize_intent_text(answer_text)
+        inferred = GuessAgent._infer_local_answer(normalized_text)
+        if inferred in {"yes", "no", "unknown"}:
+            return inferred
+
+        if any(marker in normalized_text for marker in ("不知道", "不清楚", "不晓得", "unknown", "无法判断")):
+            return "unknown"
+
+        return "unknown"
+
+    @classmethod
+    def _extract_last_complete_qa_turn(cls, history: list[dict]) -> dict | None:
+        normalized_history = [item for item in history or [] if isinstance(item, dict)]
+
+        for index in range(len(normalized_history) - 1, -1, -1):
+            item = normalized_history[index]
+            question_text = (item.get("input_text") or item.get("question") or item.get("pending_question") or "").strip()
+            answer_text = (item.get("answer_text") or item.get("answer") or "").strip()
+            turn_type = item.get("turn_type")
+
+            if turn_type == "answer" and index > 0:
+                previous_item = normalized_history[index - 1]
+                previous_question = (
+                    previous_item.get("input_text")
+                    or previous_item.get("question")
+                    or previous_item.get("pending_question")
+                    or ""
+                ).strip()
+                previous_turn_type = previous_item.get("turn_type")
+
+                if previous_question and previous_turn_type in {"question", "guess"}:
+                    return {
+                        "type": "qa",
+                        "question": previous_question,
+                        "answer": cls._normalize_qa_answer(answer_text),
+                    }
+
+            if question_text and answer_text and answer_text.lower() != "pending":
+                return {
+                    "type": "qa",
+                    "question": question_text,
+                    "answer": cls._normalize_qa_answer(answer_text),
+                }
+
+        return None
+
+    @classmethod
+    def _build_structured_intent_payload(
+        cls,
+        user_input: str,
+        history: list[dict],
+        current_phase: str | None = None,
+        pending_question: str | None = None,
+        pending_guess: str | None = None,
+    ) -> dict:
+        last_turn = None
+
+        if current_phase == "waiting_answer" and (pending_question or "").strip():
+            last_turn = {
+                "type": "qa",
+                "question": (pending_question or "").strip(),
+                "answer": "unknown",
+            }
+        elif current_phase == "awaiting_judgement" and (pending_guess or "").strip():
+            last_turn = {
+                "type": "guess",
+                "guess_word": (pending_guess or "").strip(),
+                "answer": "unknown",
+            }
+        else:
+            last_turn = cls._extract_last_complete_qa_turn(history)
+
+        return {
+            "context": {
+                "last_turn": last_turn,
+            },
+            "current_input": (user_input or "").strip(),
+        }
+
+    @staticmethod
+    def _normalize_reasoning_history(history: list[dict]) -> list[dict]:
+        normalized = []
+        for item in history or []:
+            if not isinstance(item, dict):
+                continue
+            if item.get("visible_to_agent") is False:
+                continue
+            normalized.append(item)
+        return normalized
+
+    @staticmethod
+    def _format_history_entry(item: dict) -> str:
+        parts = []
+        round_no = item.get("round_no")
+        if round_no is not None:
+            parts.append(f"round={round_no}")
+        actor = item.get("actor")
+        if actor:
+            parts.append(f"actor={actor}")
+        turn_type = item.get("turn_type")
+        if turn_type:
+            parts.append(f"turn_type={turn_type}")
+        source_word_owner = item.get("source_word_owner")
+        if source_word_owner:
+            parts.append(f"source={source_word_owner}")
+        input_text = item.get("input_text")
+        if input_text:
+            parts.append(f"input={input_text}")
+        answer_text = item.get("answer_text")
+        if answer_text:
+            parts.append(f"answer={answer_text}")
+        answer_label = item.get("answer_label")
+        if answer_label:
+            parts.append(f"label={answer_label}")
+        confidence = item.get("confidence")
+        if confidence is not None:
+            parts.append(f"confidence={confidence}")
+        return " | ".join(parts)
+
+    @classmethod
+    def _format_history_for_prompt(cls, history: list[dict]) -> str:
+        if not history:
+            return "[]"
+
+        lines = ["["]
+        for item in history:
+            lines.append(f"  {cls._format_history_entry(item)}")
+        lines.append("]")
+        return "\n".join(lines)
 
     def _normalize_answer(self, answer: str) -> str:
-        # 对模型生成的答案进行规范化处理
-        return answer.strip()
+        return (answer or "").strip()
+
+    @staticmethod
+    def _compose_user_response(answer_label: str, hint: str | None = None) -> str:
+        hint_text = (hint or "").strip()
+        if answer_label == "yes":
+            return f"是哦，{hint_text}哦" if hint_text else "是哦"
+        if answer_label == "no":
+            return f"不是哦，{hint_text}哦" if hint_text else "不是哦"
+        if hint_text:
+            return f"{hint_text}，我还不太确定哦"
+        return "这个我还不太确定哦"
+
+    @staticmethod
+    def _normalize_intent_text(text: str) -> str:
+        return re.sub(r"\s+", "", (text or "").strip().lower())
+
+    @classmethod
+    def _infer_local_answer(cls, normalized_text: str) -> str | None:
+        if not normalized_text:
+            return None
+
+        if any(marker in normalized_text for marker in ("?", "？", "吗", "么", "是否")):
+            return None
+
+        yes_tokens = {"是", "是的", "对", "对的", "没错", "yes", "y", "true", "正确"}
+        no_tokens = {"不是", "不", "不对", "不是的", "no", "n", "false", "否"}
+        unknown_tokens = {"不知道", "不清楚", "不晓得", "unknown", "无法判断"}
+
+        if normalized_text in yes_tokens:
+            return "yes"
+        if normalized_text in no_tokens:
+            return "no"
+        if normalized_text in unknown_tokens:
+            return "unknown"
+
+        if normalized_text.startswith(("不是", "不对", "并不是", "不属于", "没有", "非")):
+            return "no"
+
+        if normalized_text.startswith(("是", "对", "没错", "正确")):
+            return "yes"
+
+        return None
+
+    @staticmethod
+    def _looks_like_question(normalized_text: str) -> bool:
+        if not normalized_text:
+            return False
+
+        question_markers = ("?", "？", "吗", "么", "是否", "能否", "可否", "是不是", "能不能", "可不可以", "请问")
+        return any(marker in normalized_text for marker in question_markers)
+
+    @staticmethod
+    def _looks_like_guess(normalized_text: str) -> bool:
+        if not normalized_text:
+            return False
+
+        guess_markers = ("我猜", "猜是", "应该是", "大概是", "可能是", "也许是")
+        return any(marker in normalized_text for marker in guess_markers)
+
+    @classmethod
+    def _infer_local_intent(cls, user_input: str) -> dict | None:
+        normalized = cls._normalize_intent_text(user_input)
+        if not normalized:
+            return None
+
+        answer = cls._infer_local_answer(normalized)
+        if answer is not None:
+            return {
+                "intent": "answer",
+                "normalized_text": normalized,
+                "guess_word": "",
+                "answer": answer,
+                "confidence": 0.95,
+                "reason": "local_answer_heuristic",
+            }
+
+        if cls._looks_like_guess(normalized):
+            guess_word = normalized.replace("我猜", "").replace("猜是", "").replace("应该是", "").strip("。！？!? ")
+            return {
+                "intent": "guess",
+                "normalized_text": normalized,
+                "guess_word": guess_word,
+                "answer": "unknown",
+                "confidence": 0.7,
+                "reason": "local_guess_heuristic",
+            }
+
+        if cls._looks_like_question(normalized):
+            return {
+                "intent": "question",
+                "normalized_text": normalized,
+                "guess_word": "",
+                "answer": "unknown",
+                "confidence": 0.7,
+                "reason": "local_question_heuristic",
+            }
+
+        return None
 
     def _is_model_unavailable_error(self, error: Exception) -> bool:
         error_text = str(error).lower()
         return "model does not exist" in error_text or "20012" in error_text
-    
+
+    def _parse_json_response(self, content: str, fallback: dict | None = None) -> dict:
+        default_result = fallback or {}
+        if not content:
+            logger.warning("Agent 返回空内容，使用兜底结果")
+            return default_result
+
+        candidates = [content.strip()]
+        match = re.search(r"```(?:json)?\s*(.*?)\s*```", content, re.IGNORECASE | re.DOTALL)
+        if match:
+            candidates.insert(0, match.group(1).strip())
+
+        for candidate in candidates:
+            try:
+                parsed = json.loads(candidate)
+            except json.JSONDecodeError:
+                continue
+
+            if isinstance(parsed, dict):
+                return parsed
+
+        logger.warning("Agent 返回非 JSON 内容，使用兜底结果: %s", content[:120])
+        return default_result
+
+    @staticmethod
+    def _format_json_for_log(payload) -> str:
+        try:
+            return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)
+        except TypeError:
+            return json.dumps(str(payload), ensure_ascii=False, indent=2)
+
+    def _log_llm_request(self, stage: str, messages: list[dict]) -> None:
+        logger.info("LLM 请求 [%s]:\n%s", stage, self._format_json_for_log(messages))
+
+    def _log_llm_response(self, stage: str, raw_content: str, parsed_content: dict | None = None) -> None:
+        logger.info("LLM 原始返回 [%s]: %s", stage, raw_content or "")
+        if parsed_content is not None:
+            logger.info("LLM JSON 格式化结果 [%s]:\n%s", stage, self._format_json_for_log(parsed_content))
+
     async def generate_start_word(self, difficulty: str | None = None, subject: str | None = None) -> str:
-        # 根据提供的主题和难度，生成一个适合猜数字游戏的起始词
         system_prompt = self.prompt_loader.load_prompt("game_start")
-        # 注入学科池信息
         subjects_info = SubjectPool.get_subjects_formatted_prompt_segment()
         full_system_prompt = f"{system_prompt}\n\n可选学科范围：{subjects_info}"
         user_prompt = (
@@ -102,7 +364,7 @@ class GuessAgent:
 
         messages = [
             {"role": "system", "content": full_system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "content": user_prompt},
         ]
 
         try:
@@ -112,12 +374,12 @@ class GuessAgent:
                 raise ValueError("LLM returned an empty start word")
             return start_word
         except Exception as e:
+            logger.exception("生成开局词失败: %s", e)
             if self._is_model_unavailable_error(e):
                 raise ValueError("当前小助手模型不可用，请联系作者检查模型配置后才试。") from e
-
             raise ValueError("小助手暂时无法生成开局词，请稍后重试。") from e
 
-    async def answer(self, question: str, history: list[dict], mode: str = 'agent'):
+    async def answer(self, question: str, history: list[dict], mode: str = "agent"):
         messages = self._build_messages(question, history, mode)
         model = self._select_model(mode)
 
@@ -126,15 +388,13 @@ class GuessAgent:
             answer = self._normalize_answer(response.generations[0][0].text)
             return {
                 "answer": answer,
-                "history": history + [{"question": question, "answer": answer}]
+                "history": history + [{"question": question, "answer": answer}],
             }
         except Exception as e:
-            print(f"Error occurred while generating answer: {e}")
+            logger.exception("生成回答失败: %s", e)
             return "Sorry, I encountered an error while processing your request."
 
-
-    async def stream_answer(self, question: str, history: list[dict], mode: str = 'agent'):
-        # 处理用户问题，调用agent模型生成答案，并以流式方式返回答案和更新后的历史记录
+    async def stream_answer(self, question: str, history: list[dict], mode: str = "agent"):
         messages = self._build_messages(question, history, mode)
         model = self._select_model(mode)
 
@@ -147,37 +407,154 @@ class GuessAgent:
                 full_answer_chunks.append({"role": "assistant", "content": chunk_text})
                 yield build_stream_chunk(chunk_text)
         except Exception as e:
-            print(f"Error occurred while generating stream answer: {e}")
+            logger.exception("生成流式回答失败: %s", e)
             yield build_stream_error("Sorry, I encountered an error while processing your request.")
         finally:
             yield build_stream_end()
 
-    async def parse_user_intent(self, user_input: str, history: list[dict]) -> dict:
-        # 解析用户输入的意图，判断是否需要切换到辅助模式，并返回解析结果
+    async def parse_user_intent(
+        self,
+        user_input: str,
+        history: list[dict],
+        system_word: str | None = None,
+        current_phase: str | None = None,
+        pending_question: str | None = None,
+        pending_guess: str | None = None,
+    ) -> dict:
+        intent_payload = self._build_structured_intent_payload(
+            user_input,
+            history,
+            current_phase=current_phase,
+            pending_question=pending_question,
+            pending_guess=pending_guess,
+        )
         messages = [
             {"role": "system", "content": self.prompt_loader.load_prompt("turn_router")},
-            {"role": "user", "content": f"请分析用户输入的意图：{user_input}"},
         ]
-        response = await self.agent_model.ainvoke(messages)
-        return self._parse_json_response(response.content)
-    
-    async def answer_question(self, question: str, answer: str)-> dict:
-        # 判断用户的回答是否正确，返回判断结果
+
+        if system_word:
+            messages.append({"role": "system", "content": f"目标词：{system_word}"})
+
+        messages.append({"role": "user", "content": json.dumps(intent_payload, ensure_ascii=False, indent=2)})
+
+        try:
+            self._log_llm_request("parse_user_intent", messages)
+            response = await self.agent_model.ainvoke(messages)
+            raw_content = response.content or ""
+            self._log_llm_response("parse_user_intent/raw", raw_content)
+            parsed = self._parse_json_response(
+                raw_content,
+                fallback={
+                    "intent": "invalid",
+                    "reason": "fallback_parse_failed",
+                    "raw_content": raw_content,
+                },
+            )
+            parsed.setdefault("intent", "invalid")
+            parsed.setdefault("normalized_text", self._normalize_intent_text(user_input))
+            parsed.setdefault("guess_word", "")
+            parsed.setdefault("answer", "unknown")
+
+            local_intent = self._infer_local_intent(user_input)
+            if local_intent is not None and (
+                parsed.get("intent") == "invalid"
+                or local_intent["intent"] == "answer"
+                or (local_intent["intent"] == "question" and parsed.get("intent") in {"answer", "judge"})
+            ):
+                parsed.update(local_intent)
+
+            if parsed.get("intent") == "invalid" and not parsed.get("reason"):
+                parsed["reason"] = "invalid_input"
+
+            self._log_llm_response("parse_user_intent/parsed", raw_content, parsed)
+            return parsed
+        except Exception as e:
+            logger.exception("解析用户意图失败: %s", e)
+            local_intent = self._infer_local_intent(user_input)
+            if local_intent is not None:
+                return local_intent
+            return {
+                "intent": "invalid",
+                "reason": "llm_error",
+                "normalized_text": self._normalize_intent_text(user_input),
+                "guess_word": "",
+                "answer": "unknown",
+            }
+
+    async def answer_question(self, question: str, answer: str) -> dict:
         messages = [
             {"role": "system", "content": self.prompt_loader.load_prompt("guess_system")},
             {"role": "system", "content": f"真实答案：{answer}"},
-            {"role": "user", "content": question}
+            {"role": "user", "content": question},
         ]
-        response = await self.agent_model.ainvoke(messages)
-        return self._parse_json_response(response.content)
-    
+
+        try:
+            self._log_llm_request("answer_question", messages)
+            response = await self.agent_model.ainvoke(messages)
+            raw_content = response.content or ""
+            self._log_llm_response("answer_question/raw", raw_content)
+            parsed = self._parse_json_response(
+                raw_content,
+                fallback={
+                    "answer": "unknown",
+                    "response_text": raw_content.strip() or "这个我还不太确定哦",
+                    "hint": "",
+                    "confidence": 0.0,
+                    "reason": "fallback_parse_failed",
+                },
+            )
+            parsed["answer"] = parsed.get("answer", "unknown") if parsed.get("answer") in {"yes", "no", "unknown"} else "unknown"
+            parsed.setdefault("response_text", self._compose_user_response(parsed.get("answer", "unknown"), parsed.get("hint", "")))
+            parsed.setdefault("hint", "")
+            parsed.setdefault("confidence", 0.0)
+            parsed.setdefault("reason", "")
+            if not parsed.get("response_text"):
+                parsed["response_text"] = self._compose_user_response(parsed.get("answer", "unknown"), parsed.get("hint", ""))
+            self._log_llm_response("answer_question/parsed", raw_content, parsed)
+            return parsed
+        except Exception as e:
+            logger.exception("判断用户回答失败: %s", e)
+            return {
+                "answer": "unknown",
+                "response_text": "这个我还不太确定哦",
+                "hint": "",
+                "confidence": 0.0,
+                "reason": "llm_error",
+            }
+
     async def decide_agent_action(self, history: list[dict], summary: str) -> dict:
-        # 根据当前的对话历史，判断agent下一步应该采取的行动（继续猜词、请求提示、切换模式等）
+        reasoning_history = self._normalize_reasoning_history(history)
         messages = [
             {"role": "system", "content": self.prompt_loader.load_prompt("agent_decision")},
-            {"role": "user", "content": f"历史对话：{history}\n对话摘要：{summary}"}
+            {"role": "user", "content": f"历史对话：\n{self._format_history_for_prompt(reasoning_history)}\n对话摘要：{summary}"},
         ]
-        response = await self.agent_model.ainvoke(messages)
-        return self._parse_json_response(response.content)
-    
-    
+
+        try:
+            self._log_llm_request("decide_agent_action", messages)
+            response = await self.agent_model.ainvoke(messages)
+            raw_content = response.content or ""
+            self._log_llm_response("decide_agent_action/raw", raw_content)
+            parsed = self._parse_json_response(
+                raw_content,
+                fallback={
+                    "action": "question",
+                    "question": "请继续提供更多信息。",
+                    "confidence": 0.0,
+                    "raw_content": raw_content,
+                },
+            )
+            parsed.setdefault("action", "question")
+            if parsed.get("action") == "guess":
+                parsed.setdefault("guess_word", "")
+            else:
+                parsed.setdefault("question", "请继续提供更多信息。")
+            parsed.setdefault("confidence", 0.0)
+            self._log_llm_response("decide_agent_action/parsed", raw_content, parsed)
+            return parsed
+        except Exception as e:
+            logger.exception("决定 agent 行动失败: %s", e)
+            return {
+                "action": "question",
+                "question": "请继续提供更多信息。",
+                "confidence": 0.0,
+            }

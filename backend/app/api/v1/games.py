@@ -5,16 +5,17 @@ from datetime import datetime
 from pathlib import Path
 
 # 导入 fastapi 和相关模块
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 # 导入项目内部模块
-from app.agents.guess_agent_fixed import GuessAgent
+from app.agents.guess_agent import GuessAgent
 from app.agents.utils.prompt_loader import PromptLoader
 from app.agents.utils.memory_policy import MemoryPolicy
 from app.core.config import get_settings
 from app.core.database import get_database
 from app.repositories.game_repository import GameRepository
+from app.schemas.game_details import GameDetailsResponse
 from app.services.game_service import GameService
 
 class CreateGameRequest(BaseModel):
@@ -49,3 +50,19 @@ async def create_game(request: CreateGameRequest, service: GameService = Depends
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create game")
+
+
+@router.get("/{game_id}", response_model=GameDetailsResponse)
+async def get_game_details_compat(
+    game_id: str,
+    user_id: str | None = Query(default=None, alias="userId"),
+    service: GameService = Depends(get_game_service),
+):
+    try:
+        return await service.get_game_details(game_id, user_id=user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get game details")

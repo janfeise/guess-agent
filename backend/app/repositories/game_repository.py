@@ -68,6 +68,10 @@ class GameRepository:
         cursor = self.collection.find(query).sort("updated_at", -1).skip(skip).limit(limit)
         
         return await cursor.to_list(length=limit)
+
+    async def list_games_by_owner(self, owner_id: str):
+        cursor = self.collection.find({"owner_id": owner_id}).sort("updated_at", -1)
+        return await cursor.to_list(length=None)
     
     async def update_game_state(
             self,
@@ -77,7 +81,7 @@ class GameRepository:
             round_count: int | None = None,
             phase: str | None = None,
             awaiting_judgement: bool = False,
-            awaiting_answer: bool = False,
+            waiting_answer: bool = False,
             pending_guess: str = "",
             pending_question: str = "",
             agent_confidence: float = 0.0,
@@ -94,7 +98,7 @@ class GameRepository:
             "round_count": round_count,
             "metadata.phase": phase,
             "metadata.awaiting_judgement": awaiting_judgement,
-            "metadata.awaiting_answer": awaiting_answer,
+            "metadata.waiting_answer": waiting_answer,
             "metadata.pending_guess": pending_guess,
             "metadata.pending_question": pending_question,
             "metadata.agent_confidence": agent_confidence,

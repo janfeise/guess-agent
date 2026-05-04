@@ -6,30 +6,46 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
+import { useAnonymousStore } from "@/src/store/useAnonymousStore";
 import { gameApiClient } from "@/src/services/gameApiClient";
+import {
+  formatDateTime,
+  getGameResultLabel,
+  getGameTitle,
+} from "@/src/lib/gameRecords";
+import { GameDetailsResponse } from "@/src/types/game";
+import GameDetailModal from "../components/game/GameDetailModal";
 
 interface HomeProps {
   onStartGame: (word: string, difficulty: string) => void;
-  onNavigate: (page: "history" | "rules") => void;
+  onNavigate: (page: "history" | "project") => void;
+  onOpenGame: (gameId: string) => void;
 }
 
-interface RecentGame {
-  name: string;
-  result: string;
-  rounds: number | string;
-}
-
-export default function Home({ onStartGame, onNavigate }: HomeProps) {
+export default function Home({
+  onStartGame,
+  onNavigate,
+  onOpenGame,
+}: HomeProps) {
   const [startWord, setStartWord] = useState("");
   const [difficulty, setDifficulty] = useState("中等");
-  const [recentGames, setRecentGames] = useState<RecentGame[]>([]);
+  const [recentGames, setRecentGames] = useState<GameDetailsResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState<"online" | "offline" | "checking">(
     "checking",
   );
+  const [detailGame, setDetailGame] = useState<GameDetailsResponse | null>(
+    null,
+  );
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const { anonymousId, initAnonymousId } = useAnonymousStore();
 
   // 检查后端连接
   useEffect(() => {
+    initAnonymousId();
+
     const checkApiConnection = async () => {
       setApiStatus("checking");
       try {
@@ -48,16 +64,25 @@ export default function Home({ onStartGame, onNavigate }: HomeProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // 加载最近游戏历史（暂时使用模拟数据）
+  // 加载最近游戏历史
   useEffect(() => {
-    // TODO: 当后端提供游戏历史 API 时，替换为真实数据
-    // 目前使用本地存储或模拟数据
-    const mockGames: RecentGame[] = [
-      { name: "星云", result: "获胜", rounds: 4 },
-      { name: "合成", result: "失败", rounds: "AI 获胜" },
-    ];
-    setRecentGames(mockGames);
-  }, []);
+    const loadRecentGames = async () => {
+      if (!anonymousId) {
+        setRecentGames([]);
+        return;
+      }
+
+      try {
+        const response = await gameApiClient.getUserGameHistory(anonymousId);
+        setRecentGames(response.games.slice(0, 2));
+      } catch (error) {
+        console.error("Failed to load recent games:", error);
+        setRecentGames([]);
+      }
+    };
+
+    loadRecentGames();
+  }, [anonymousId]);
 
   const handleStartGame = async () => {
     if (!startWord.trim()) {
@@ -78,6 +103,29 @@ export default function Home({ onStartGame, onNavigate }: HomeProps) {
     }
   };
 
+  const openDetailModal = async (gameId: string) => {
+    if (!anonymousId) {
+      setDetailError("用户身份未初始化");
+      setIsDetailOpen(true);
+      return;
+    }
+
+    setIsDetailOpen(true);
+    setDetailLoading(true);
+    setDetailError(null);
+    setDetailGame(null);
+
+    try {
+      const detail = await gameApiClient.getGameDetails(gameId, anonymousId);
+      setDetailGame(detail);
+    } catch (error) {
+      console.error("Failed to load game detail:", error);
+      setDetailError("加载对局详情失败");
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-12 pb-12">
       {/* API 状态指示器 */}
@@ -94,7 +142,7 @@ export default function Home({ onStartGame, onNavigate }: HomeProps) {
       )}
 
       {/* Hero Section */}
-      <section className="text-center space-y-6 pt-4">
+      <section className="text-center space-y-6 pt-4 mb-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,20 +154,18 @@ export default function Home({ onStartGame, onNavigate }: HomeProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-5xl font-extrabold tracking-tight text-on-surface leading-tight font-headline"
+          className="text-2xl font-extrabold tracking-tight text-on-surface leading-tight font-headline text-left mb-1 mt-2"
         >
-          DeepSeek - AI <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-            猜词游戏
-          </span>
+          开启新挑战
+          <br />
         </motion.h2>
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="text-on-surface-variant max-w-xs mx-auto font-medium leading-relaxed"
+          className="text-on-surface-variant mx-auto font-medium leading-relaxed text-left"
         >
-          测试你与Guess Agent的直觉。你能跨越人类逻辑与 AI 推理之间的鸿沟吗？
+          从任意单词开始, 与 AI 对战！
         </motion.p>
       </section>
 
@@ -184,25 +230,29 @@ export default function Home({ onStartGame, onNavigate }: HomeProps) {
       {/* Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Recent Games */}
-        <section className="bg-surface-container-low rounded-[2rem] p-6 space-y-6">
+        <section className=" rounded-[2rem] space-y-6">
           <div className="flex justify-between items-center px-1">
             <h3 className="font-bold text-lg flex items-center gap-2 font-headline">
               <HistoryIcon className="w-5 h-5 text-primary" />
               最近游戏
             </h3>
+            <h3>全部记录</h3>
           </div>
           <div className="space-y-3">
             {recentGames.length > 0 ? (
               recentGames.map((game, i) => (
                 <div
-                  key={i}
-                  onClick={() => onNavigate("history")}
+                  key={game.game_id}
+                  onClick={() => openDetailModal(game.game_id)}
                   className="bg-white p-5 rounded-2xl flex items-center justify-between group cursor-pointer hover:translate-x-1 transition-all shadow-sm"
                 >
                   <div>
-                    <div className="font-bold text-on-surface">{game.name}</div>
+                    <div className="font-bold text-on-surface">
+                      {getGameTitle(game)}
+                    </div>
                     <div className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mt-1">
-                      {game.result} • {game.rounds} 回合
+                      {getGameResultLabel(game)} • {game.round_count} 回合 •{" "}
+                      {formatDateTime(game.updated_at)}
                     </div>
                   </div>
                   <ChevronRight className="w-5 h-5 text-primary/40 group-hover:text-primary transition-colors" />
@@ -223,22 +273,23 @@ export default function Home({ onStartGame, onNavigate }: HomeProps) {
             玩法说明
           </h3>
           <p className="text-sm text-on-surface-variant leading-relaxed font-medium">
-            从任意单词开始。AI
-            将提供一个神秘的直觉。运用逻辑和发散性思维来缩小目标单词的范围。
+            该项目是一款双人猜词游戏，你和系统各自设定一个秘密词语，通过轮流提问的方式，抢先猜出对方设置的词语即可获胜
           </p>
-          <div className="flex gap-2 pt-4">
-            {[1, 2, 3].map((s) => (
-              <div
-                key={s}
-                className="w-8 h-8 rounded-full bg-tertiary/10 flex items-center justify-center text-[10px] font-bold text-tertiary"
-              >
-                {s}
-              </div>
-            ))}
-          </div>
           <SparklesIcon className="absolute -bottom-6 -right-6 w-32 h-32 text-tertiary/5" />
         </section>
       </div>
+
+      <GameDetailModal
+        isOpen={isDetailOpen}
+        isLoading={detailLoading}
+        error={detailError}
+        detail={detailGame}
+        onClose={() => setIsDetailOpen(false)}
+        onOpenGame={(gameId: string) => {
+          setIsDetailOpen(false);
+          onOpenGame(gameId);
+        }}
+      />
     </div>
   );
 }

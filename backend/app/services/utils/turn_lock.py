@@ -17,15 +17,15 @@ class TurnLock:
         }
 
     @staticmethod
-    def _get_turn_lock_state(game: dict) -> dict:
-        metadata = game.get("metadata", {}) or {}
-        return {
-            "phase": metadata.get("phase", "user_turn"),
-            "next_actor": metadata.get("next_actor", "user"),
-            "expected_turn_type": metadata.get("expected_turn_type", "question"),
-            "last_actor": metadata.get("last_actor", "system"),
-            "last_intent": metadata.get("last_intent"),
-        }
+    def is_turn_allowed(phase: str, intent: str) -> bool:
+        """判断当前阶段是否允许指定意图。"""
+        if phase == "waiting_answer":
+            return intent == "answer"
+        if phase == "awaiting_judgement":
+            return intent in {"judge", "answer"}
+        if phase == "user_turn":
+            return intent in {"question", "guess"}
+        return intent == "question"
 
     @staticmethod
     def build_update(*, phase: str, next_actor: str, expected_turn_type: str, 

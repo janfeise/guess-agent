@@ -1,37 +1,38 @@
 import { ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useEffect } from "react";
+import { useAnonymousStore } from "@/src/store/useAnonymousStore";
+import { gameApiClient } from "@/src/services/gameApiClient";
+import { GameDetailsResponse } from "@/src/types/game";
+import {
+  formatDateTime,
+  getGameResultLabel,
+  getGameTitle,
+  resolveGameOutcome,
+} from "@/src/lib/gameRecords";
 
-interface HistoryItem {
-  date: string;
-  name: string;
-  result: string;
-  level: string;
-  status: "win" | "loss";
+interface HistoryProps {
+  onOpenGame: (gameId: string) => void;
 }
 
-export default function History() {
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+export default function History({ onOpenGame }: HistoryProps) {
+  const [history, setHistory] = useState<GameDetailsResponse[]>([]);
   const [filter, setFilter] = useState<"all" | "win" | "loss">("all");
   const [isLoading, setIsLoading] = useState(true);
+  const { anonymousId, initAnonymousId } = useAnonymousStore();
 
   // 加载游戏历史数据
   useEffect(() => {
-    // TODO: 当后端提供游戏历史 API 时，替换为真实数据
-    // 目前使用本地存储中的数据或模拟数据
     const loadHistory = async () => {
       try {
-        // 模拟 API 调用延迟
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // 从本地存储获取历史数据（如果没有则使用空数组）
-        const savedHistory = localStorage.getItem("gameHistory");
-        if (savedHistory) {
-          setHistory(JSON.parse(savedHistory));
-        } else {
-          // 如果没有保存的历史，则使用空数组
+        initAnonymousId();
+        if (!anonymousId) {
           setHistory([]);
+          return;
         }
+
+        const response = await gameApiClient.getUserGameHistory(anonymousId);
+        setHistory(response.games);
       } catch (error) {
         console.error("Failed to load history:", error);
         setHistory([]);
@@ -41,24 +42,25 @@ export default function History() {
     };
 
     loadHistory();
-  }, []);
+  }, [anonymousId, initAnonymousId]);
 
   // 过滤历史记录
   const filteredHistory = history.filter((item) => {
     if (filter === "all") return true;
-    if (filter === "win") return item.status === "win";
-    if (filter === "loss") return item.status === "loss";
+    const outcome = resolveGameOutcome(item);
+    if (filter === "win") return outcome === "win";
+    if (filter === "loss") return outcome === "loss";
     return true;
   });
 
   // 计算统计数据
   const stats = {
     total: history.length,
-    wins: history.filter((h) => h.status === "win").length,
+    wins: history.filter((h) => resolveGameOutcome(h) === "win").length,
     winRate:
       history.length > 0
         ? Math.round(
-            (history.filter((h) => h.status === "win").length /
+            (history.filter((h) => resolveGameOutcome(h) === "win").length /
               history.length) *
               100,
           )
@@ -66,7 +68,7 @@ export default function History() {
   };
 
   return (
-    <div className="space-y-10 pb-12">
+    <div className="space-y-10 pb-12 pt-10">
       <section className="pt-8">
         <h2 className="text-4xl font-headline font-extrabold tracking-tight text-on-surface mb-3">
           对局历史
@@ -109,32 +111,33 @@ export default function History() {
         <div className="space-y-4">
           {filteredHistory.map((item, i) => (
             <motion.div
-              key={i}
+              key={item.game_id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.1 }}
+              onClick={() => onOpenGame(item.game_id)}
               className="group relative bg-white rounded-[2rem] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.03)] transition-all hover:translate-y-[-4px] cursor-pointer"
             >
               <div className="flex justify-between items-start">
                 <div className="space-y-2">
                   <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50">
-                    {item.date}
+                    {formatDateTime(item.updated_at)}
                   </span>
                   <h3 className="text-2xl font-headline font-bold text-on-surface tracking-tight">
-                    {item.name}
+                    {getGameTitle(item)}
                   </h3>
                   <div className="flex gap-2 pt-2">
                     <span
                       className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                        item.status === "win"
+                        resolveGameOutcome(item) === "win"
                           ? "bg-primary-container text-on-primary-container"
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {item.result}
+                      {getGameResultLabel(item)}
                     </span>
                     <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-surface-container text-on-surface-variant text-[10px] font-bold uppercase tracking-widest">
-                      {item.level}
+                      {item.difficulty || "中等"}
                     </span>
                   </div>
                 </div>

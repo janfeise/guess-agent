@@ -2,6 +2,8 @@ import axios, { AxiosInstance } from "axios";
 import {
   CreateGameRequest,
   CreateGameResponse,
+  GameDetailsResponse,
+  UserGameHistoryResponse,
   SubmitTurnRequest,
   SubmitTurnResponse,
   HealthResponse,
@@ -13,7 +15,13 @@ import {
  */
 class GameApiClient {
   private client: AxiosInstance;
+  private apiClient: AxiosInstance;
   private baseURL: string;
+  private pendingHealthCheck: Promise<HealthResponse> | null = null;
+  private pendingCreateGameRequests = new Map<
+    string,
+    Promise<CreateGameResponse>
+  >();
 
   constructor(baseURL?: string) {
     // 开发环境下使用相对路径以启用 Vite 代理
@@ -33,13 +41,23 @@ class GameApiClient {
       }
     }
 
-    this.baseURL = apiUrl; // 保存当前基础 URL
+    const resolvedApiUrl = apiUrl || "/api/v1";
+    const apiRootUrl = resolvedApiUrl.replace(/\/api\/v1\/?$/, "/api");
+
+    this.baseURL = resolvedApiUrl; // 保存当前基础 URL
     this.client = axios.create({
-      baseURL: apiUrl,
+      baseURL: resolvedApiUrl,
       headers: {
         "Content-Type": "application/json",
       },
       timeout: 30000, // 30 秒超时
+    });
+    this.apiClient = axios.create({
+      baseURL: apiRootUrl,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      timeout: 30000,
     });
 
     // 响应拦截器：处理错误
@@ -69,19 +87,45 @@ class GameApiClient {
    * 健康检查
    */
   async checkHealth(): Promise<HealthResponse> {
-    const response = await this.client.get<HealthResponse>("/health");
-    return response.data;
+    if (this.pendingHealthCheck) {
+      return this.pendingHealthCheck;
+    }
+
+    const requestPromise = this.client
+      .get<HealthResponse>("/health")
+      .then((response) => response.data)
+      .finally(() => {
+        this.pendingHealthCheck = null;
+      });
+
+    this.pendingHealthCheck = requestPromise;
+    return requestPromise;
   }
 
   /**
    * 创建游戏
    */
   async createGame(request: CreateGameRequest): Promise<CreateGameResponse> {
-    const response = await this.client.post<CreateGameResponse>(
-      "/games",
-      request,
-    );
-    return response.data;
+    const requestKey = JSON.stringify({
+      user_word: request.user_word,
+      difficulty: request.difficulty ?? null,
+    });
+
+    const pendingRequest = this.pendingCreateGameRequests.get(requestKey);
+    if (pendingRequest) {
+      return pendingRequest;
+    }
+
+    const requestPromise = this.client
+      .post<CreateGameResponse>("/games", request)
+      .then((response) => response.data)
+      .finally(() => {
+        this.pendingCreateGameRequests.delete(requestKey);
+      });
+
+    this.pendingCreateGameRequests.set(requestKey, requestPromise);
+
+    return requestPromise;
   }
 
   /**
@@ -101,8 +145,26 @@ class GameApiClient {
   /**
    * 获取游戏详情（如需）
    */
-  async getGameDetails(gameId: string): Promise<any> {
-    const response = await this.client.get(`/games/${gameId}`);
+  async getGameDetails(gameId: string, userId: string): Promise<any> {
+    const response = await this.apiClient.get<GameDetailsResponse>(
+      `/game/${gameId}/details`,
+      {
+        params: { userId },
+      },
+    );
+    return response.data;
+  }
+
+  /**
+   * 获取用户所有游戏历史
+   */
+  async getUserGameHistory(userId: string): Promise<UserGameHistoryResponse> {
+    const response = await this.apiClient.get<UserGameHistoryResponse>(
+      "/user/games/history",
+      {
+        params: { userId },
+      },
+    );
     return response.data;
   }
 

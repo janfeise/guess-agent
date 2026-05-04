@@ -1,0 +1,9 @@
+.topBar {
+  position: fixed;
+  top: 6.5%;
+  left: 3%;
+  z-index: 100;
+  padding: 0;
+  width: 100%;
+  background-color: var(--color-surface);
+}

@@ -52,8 +52,8 @@ async def test_turn_lock_phase_validation():
     
 
 @pytest.mark.asyncio
-async def test_turn_lock_awaiting_answer_phase():
-    """测试 awaiting_answer 阶段的轮次锁"""
+async def test_turn_lock_waiting_answer_phase():
+    """测试 waiting_answer 阶段的轮次锁"""
     from app.services.game_service import GameService
     
     mock_settings = MagicMock()
@@ -68,13 +68,13 @@ async def test_turn_lock_awaiting_answer_phase():
         memory_policy=mock_memory_policy,
     )
     
-    # 测试场景：awaiting_answer 阶段只允许 answer
+    # 测试场景：waiting_answer 阶段只允许 answer
     game = {
         "game_id": "test_2",
         "status": "active",
         "history": [],
         "metadata": {
-            "phase": "awaiting_answer",
+            "phase": "waiting_answer",
             "next_actor": "user",
             "expected_turn_type": "answer",
         }
@@ -120,7 +120,7 @@ async def test_turn_lock_returns_to_user_turn():
         "history": [],
         "round_count": 1,
         "metadata": {
-            "phase": "awaiting_answer",
+            "phase": "waiting_answer",
             "next_actor": "user",
             "expected_turn_type": "answer",
         }
@@ -152,6 +152,54 @@ async def test_turn_lock_returns_to_user_turn():
 
 
 @pytest.mark.asyncio
+async def test_turn_lock_guess_confirmation_finishes_game():
+    """测试用户确认系统具体猜测正确时游戏结束"""
+    from app.services.game_service import GameService
+
+    mock_settings = MagicMock()
+    mock_agent = AsyncMock()
+    mock_repository = AsyncMock()
+    mock_memory_policy = MagicMock()
+
+    service = GameService(
+        settings=mock_settings,
+        agent=mock_agent,
+        repository=mock_repository,
+        memory_policy=mock_memory_policy,
+    )
+
+    game = {
+        "game_id": "test_4",
+        "status": "active",
+        "history": [],
+        "round_count": 2,
+        "metadata": {
+            "phase": "waiting_answer",
+            "next_actor": "user",
+            "expected_turn_type": "answer",
+            "pending_question": "这个人是唐太宗李世民吗？",
+        }
+    }
+
+    mock_agent.parse_user_intent.return_value = {
+        "intent": "answer",
+        "answer": "yes",
+        "normalized_text": "yes",
+        "confidence": 0.95,
+        "reason": "user_confirmed_guess",
+    }
+
+    mock_repository.get_game.return_value = game
+
+    result = await service.submit_turn("test_4", "恭喜你，猜对了！", "agent", "input")
+
+    mock_repository.finish_game.assert_called_once()
+    assert result.get("status") == "finished"
+    assert result.get("result") == "agent_win"
+    assert result.get("message") == "系统猜测正确！游戏结束"
+
+
+@pytest.mark.asyncio
 async def test_turn_lock_state_consistency():
     """测试轮次锁状态的一致性"""
     from app.services.game_service import GameService
@@ -168,7 +216,7 @@ async def test_turn_lock_state_consistency():
         memory_policy=mock_memory_policy,
     )
     
-    # 验证 _get_turn_lock_state 返回正确的值
+    # 验证 TurnLock.get_state 返回正确的值
     game = {
         "game_id": "test_4",
         "metadata": {
@@ -180,7 +228,9 @@ async def test_turn_lock_state_consistency():
         }
     }
     
-    turn_lock_state = service._get_turn_lock_state(game)
+    from app.services.utils.turn_lock import TurnLock
+
+    turn_lock_state = TurnLock.get_state(game)
     
     assert turn_lock_state["phase"] == "awaiting_judgement"
     assert turn_lock_state["next_actor"] == "user"
@@ -190,37 +240,25 @@ async def test_turn_lock_state_consistency():
 @pytest.mark.asyncio  
 async def test_turn_lock_intent_validation():
     """测试轮次锁的意图校验"""
-    from app.services.game_service import GameService
+    from app.services.utils.turn_lock import TurnLock
     
-    mock_settings = MagicMock()
-    mock_agent = AsyncMock()
-    mock_repository = AsyncMock()
-    mock_memory_policy = MagicMock()
-    
-    service = GameService(
-        settings=mock_settings,
-        agent=mock_agent,
-        repository=mock_repository,
-        memory_policy=mock_memory_policy,
-    )
-    
-    # 测试 _is_turn_allowed 函数
+    # 测试 TurnLock.is_turn_allowed 函数
     
     # user_turn 允许 question 和 guess
-    assert service._is_turn_allowed("user_turn", "question") == True
-    assert service._is_turn_allowed("user_turn", "guess") == True
-    assert service._is_turn_allowed("user_turn", "answer") == False
-    assert service._is_turn_allowed("user_turn", "judge") == False
+    assert TurnLock.is_turn_allowed("user_turn", "question") == True
+    assert TurnLock.is_turn_allowed("user_turn", "guess") == True
+    assert TurnLock.is_turn_allowed("user_turn", "answer") == False
+    assert TurnLock.is_turn_allowed("user_turn", "judge") == False
     
-    # awaiting_answer 只允许 answer
-    assert service._is_turn_allowed("awaiting_answer", "answer") == True
-    assert service._is_turn_allowed("awaiting_answer", "question") == False
-    assert service._is_turn_allowed("awaiting_answer", "judge") == False
+    # waiting_answer 只允许 answer
+    assert TurnLock.is_turn_allowed("waiting_answer", "answer") == True
+    assert TurnLock.is_turn_allowed("waiting_answer", "question") == False
+    assert TurnLock.is_turn_allowed("waiting_answer", "judge") == False
     
     # awaiting_judgement 允许 judge 和 answer
-    assert service._is_turn_allowed("awaiting_judgement", "judge") == True
-    assert service._is_turn_allowed("awaiting_judgement", "answer") == True
-    assert service._is_turn_allowed("awaiting_judgement", "question") == False
+    assert TurnLock.is_turn_allowed("awaiting_judgement", "judge") == True
+    assert TurnLock.is_turn_allowed("awaiting_judgement", "answer") == True
+    assert TurnLock.is_turn_allowed("awaiting_judgement", "question") == False
 
 
 def test_build_initial_metadata():
@@ -236,6 +274,6 @@ def test_build_initial_metadata():
     assert metadata.get("last_actor") == "system"
     assert metadata.get("last_intent") is None
     assert metadata.get("awaiting_judgement") == False
-    assert metadata.get("awaiting_answer") == False
+    assert metadata.get("waiting_answer") == False
     assert metadata.get("game_mode") == "dual_word_isolated"
     assert metadata.get("reasoning_scope") == "user_word"

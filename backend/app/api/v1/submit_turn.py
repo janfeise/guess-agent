@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 # 导入项目内部模块
-from app.agents.guess_agent_fixed import GuessAgent
+from app.agents.guess_agent import GuessAgent
 from app.agents.utils.memory_policy import MemoryPolicy
 from app.agents.utils.prompt_loader import PromptLoader
 from app.core.config import get_settings

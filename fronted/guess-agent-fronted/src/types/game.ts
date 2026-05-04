@@ -37,15 +37,60 @@ export interface CreateGameResponse {
   created_at: string;
 }
 
+export interface GameDetailProgress {
+  phase: string;
+  next_actor?: string;
+  expected_turn_type?: string;
+  waiting_answer?: boolean;
+  awaiting_judgement?: boolean;
+  pending_question?: string;
+  pending_guess?: string;
+  agent_confidence?: number;
+  last_actor?: string;
+  last_intent?: string | null;
+}
+
+export interface GameDetailsResponse {
+  game_id: string;
+  status: "active" | "finished";
+  owner_id?: string | null;
+  difficulty?: string | null;
+  user_word?: string | null;
+  round_count: number;
+  summary: string;
+  history: HistoryItem[];
+  metadata: Record<string, unknown>;
+  progress?: GameDetailProgress | null;
+  created_at: string;
+  updated_at: string;
+  finished_at?: string | null;
+  finish_reason?: string | null;
+  system_word_encrypted?: string | null;
+  target_word_source?: string | null;
+}
+
+export interface UserGameHistoryResponse {
+  user_id: string;
+  total: number;
+  games: GameDetailsResponse[];
+}
+
 export interface HistoryItem {
   round_no: number;
   actor: "user" | "system";
-  turn_type: "question" | "answer" | "ask" | "guess" | "judge";
+  turn_type:
+    | "question"
+    | "answer"
+    | "ask"
+    | "guess"
+    | "judge"
+    | "judge_agent_guess";
   input_text?: string;
   answer_text?: string;
   answer_label?: "yes" | "no" | "unknown";
   hint?: string;
   confidence?: number;
+  result?: string;
   source_word_owner?: "user" | "system";
   visible_to_agent?: boolean;
   visible_to_player?: boolean;
@@ -53,21 +98,22 @@ export interface HistoryItem {
 
 export interface SubmitTurnResponse {
   game_id: string;
-  status: "active" | "finished_win" | "finished_loss";
+  status: "active" | "finished";
   phase:
     | "user_turn"
-    | "awaiting_answer"
+    | "waiting_answer"
     | "awaiting_judgement"
     | "finished_win"
     | "finished_loss";
   result?: string;
+  message?: string;
   answer?: "yes" | "no" | "unknown" | null;
   response_text?: string | null;
   answer_text?: string | null;
   system_question?: string | null; // 系统提问的内容
   hint?: string | null;
   confidence?: number;
-  history: HistoryItem[];
+  history?: HistoryItem[];
 }
 
 // ============ 错误类型 ============
@@ -89,6 +135,20 @@ export interface GameState {
   systemWordEncrypted?: string;
   createdAt?: string;
   startTime?: number;
+  result?: string;
+  finalMessage?: string;
+  revealedWord?: string;
+}
+
+export type GameOutcome = "win" | "loss";
+
+export interface GameEndStats {
+  rounds: number;
+  time: string;
+  confidence?: number;
+  message?: string;
+  result?: string;
+  revealedWord?: string;
 }
 
 // ============ UI 类型 ============

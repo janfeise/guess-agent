@@ -1,0 +1,186 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="E40K8ksF2GA_uNF0gsjQ" name="第 1 页">
+    <mxGraphModel dx="1414" dy="789" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="meaGHtcZj90v7K8aLowb-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;" value="&lt;b&gt;START&lt;/b&gt;&lt;br&gt;&lt;font&gt;游戏初始化&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="130" x="170" y="1251" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;" value="&lt;b&gt;user_turn&lt;/b&gt;&lt;br&gt;&lt;font&gt;用户行动轮&lt;br&gt;&lt;i&gt;允许：question, guess,yield_turn&lt;/i&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="160" x="382" y="1241" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=13;" value="&lt;b&gt;waiting_answer&lt;/b&gt;&lt;br&gt;&lt;font&gt;等待用户回答&lt;br&gt;&lt;i&gt;允许：answer&lt;/i&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="160" x="652" y="1241" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-4" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1002" y="1421" />
+              <mxPoint x="1272" y="1421" />
+            </Array>
+            <mxPoint x="1272" y="1351" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-5" connectable="0" parent="meaGHtcZj90v7K8aLowb-4" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="用户意图：用户判断系统猜词正确&lt;div&gt;action：agent_win&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0755" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=13;" value="&lt;b&gt;awaiting_judgement&lt;/b&gt;&lt;br&gt;&lt;font&gt;等待用户判定&lt;br&gt;&lt;i&gt;允许：judge, answer&lt;/i&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="160" x="922" y="1241" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=13;" value="&lt;b&gt;FINISHED&lt;/b&gt;&lt;br&gt;&lt;font&gt;游戏结束&lt;br&gt;&lt;i&gt;结果：win/lose/draw&lt;/i&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="160" x="1192" y="1241" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontSize=13;" value="&lt;b&gt;ERROR&lt;/b&gt;&lt;br&gt;&lt;font&gt;系统错误&lt;br&gt;&lt;i&gt;异常处理&lt;/i&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="90" width="130" x="1412" y="1241" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-9" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;fontSize=13;" target="meaGHtcZj90v7K8aLowb-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-10" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;fontStyle=1;" value="[INIT]" vertex="1">
+          <mxGeometry x="236" y="1231" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-11" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;fontSize=13;" target="meaGHtcZj90v7K8aLowb-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-12" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;" value="用户意图：[question] / [yield_turn]&lt;br&gt;Agent: ask，回答后系统提问" vertex="1">
+          <mxGeometry x="592" y="1271" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-13" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;fontSize=13;" target="meaGHtcZj90v7K8aLowb-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="462" y="1181" />
+              <mxPoint x="1002" y="1181" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-14" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;" value="用户意图：[question] / [yield_turn]&lt;br&gt;Agent: guess，回答后系统猜测" vertex="1">
+          <mxGeometry x="792" y="1171" as="geometry">
+            <mxPoint x="-2" y="8" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-15" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2e7d32;fontSize=13;" target="meaGHtcZj90v7K8aLowb-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="462" y="1131" />
+              <mxPoint x="1272" y="1131" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-16" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;curved=1;fontSize=13;" target="meaGHtcZj90v7K8aLowb-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="462" y="1421" />
+              <mxPoint x="462" y="1451" />
+              <mxPoint x="402" y="1451" />
+              <mxPoint x="402" y="1421" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-17" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;" value="&lt;div style=&quot;font-weight: 700;&quot;&gt;用户意图：[guess]，用户进行猜测&lt;/div&gt;&lt;span style=&quot;font-weight: 700;&quot;&gt;[judge: error]系统判断猜测错误&lt;/span&gt;&lt;br style=&quot;font-weight: 700;&quot;&gt;&lt;span style=&quot;font-weight: 700;&quot;&gt;→ user_turn&lt;/span&gt;" vertex="1">
+          <mxGeometry x="352" y="1431" as="geometry">
+            <mxPoint x="-9" y="-2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-18" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#2e7d32;fontSize=13;" target="meaGHtcZj90v7K8aLowb-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="732" y="1391" />
+              <mxPoint x="462" y="1391" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-19" connectable="0" parent="meaGHtcZj90v7K8aLowb-18" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;div&gt;用户意图：answer用户回答系统提问&lt;/div&gt;记录用户回答&lt;div&gt;action：user_turn&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0528" y="-4" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-20" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;fontStyle=1;" value="&lt;div&gt;用户意图：[guess]，用户进行猜测&lt;/div&gt;[judge: yes]系统判断猜测正确&lt;br&gt;→ user_win" vertex="1">
+          <mxGeometry x="1177" y="1106" as="geometry">
+            <mxPoint x="-1" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-21" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#0066cc;fontSize=13;" target="meaGHtcZj90v7K8aLowb-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1002" y="1421" />
+              <mxPoint x="462" y="1421" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-22" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;" value="用户意图：用户判断系统猜词错误&lt;div&gt;action：user_turn&lt;/div&gt;" vertex="1">
+          <mxGeometry x="732" y="1431" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-23" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#ff6600;dashed=1;fontSize=13;" target="meaGHtcZj90v7K8aLowb-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="462" y="1531" />
+              <mxPoint x="1272" y="1531" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-24" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;" value="轮次检查：[round_count ≥ max]&lt;br&gt;→ 超过最大轮次，游戏结束（当前没有设限）" vertex="1">
+          <mxGeometry x="772" y="1531" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-25" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#c62828;dashed=1;fontSize=13;" target="meaGHtcZj90v7K8aLowb-8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="812" y="1296" />
+              <mxPoint x="1477" y="1296" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-26" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;" value="[exception/timeout]" vertex="1">
+          <mxGeometry x="1142" y="1281" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-27" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;fontSize=13;" target="meaGHtcZj90v7K8aLowb-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1477" y="1381" />
+              <mxPoint x="1272" y="1381" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-28" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;" value="[abort]&lt;div&gt;error不可回复，游戏终止&lt;/div&gt;" vertex="1">
+          <mxGeometry x="1375" y="1401" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-29" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#999999;dashed=1;fontSize=13;" target="meaGHtcZj90v7K8aLowb-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1482" y="1581" />
+              <mxPoint x="462" y="1581" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-30" connectable="0" parent="1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=13;" value="error恢复&lt;div&gt;回到用户轮次，提示“已恢复/请重试”&lt;/div&gt;" vertex="1">
+          <mxGeometry x="822" y="1591" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-31" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.75;entryY=1;entryDx=0;entryDy=0;curved=1;fontColor=default;fontFamily=Helvetica;fontSize=13;fontStyle=0;align=center;verticalAlign=middle;labelBackgroundColor=default;fillColor=#f8cecc;strokeColor=#b85450;" target="meaGHtcZj90v7K8aLowb-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="802" y="1221" />
+              <mxPoint x="872" y="1221" />
+              <mxPoint x="872" y="1371" />
+              <mxPoint x="772" y="1371" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-32" connectable="0" parent="meaGHtcZj90v7K8aLowb-31" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;span style=&quot;font-size: 14px;&quot;&gt;用户意图：用户没有回答系统的提问&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 14px;&quot;&gt;action：轮次锁&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.4373" y="-17" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-33" edge="1" parent="1" source="meaGHtcZj90v7K8aLowb-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.681;entryY=0.997;entryDx=0;entryDy=0;entryPerimeter=0;fillColor=#f8cecc;strokeColor=#b85450;curved=1;fontSize=15;" target="meaGHtcZj90v7K8aLowb-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="meaGHtcZj90v7K8aLowb-34" connectable="0" parent="meaGHtcZj90v7K8aLowb-33" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="用户意图：用户没有回答系统的猜测是否正确&lt;div&gt;action：轮次锁，&lt;span style=&quot;background-color: rgb(248, 248, 248); color: rgb(51, 51, 51); font-family: &amp;quot;Open Sans&amp;quot;, &amp;quot;Clear Sans&amp;quot;, &amp;quot;Helvetica Neue&amp;quot;, Helvetica, Arial, &amp;quot;Segoe UI Emoji&amp;quot;, &amp;quot;SF Pro&amp;quot;, sans-serif; text-align: left; white-space: pre-wrap;&quot;&gt;提示“请先判定系统猜测”&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.336" y="-2" as="geometry">
+            <mxPoint x="42" y="-141" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,11 +1,115 @@
-import { Bot, History as HistoryIcon, Sparkles } from "lucide-react";
+import {
+  AlertTriangle,
+  Bot,
+  CheckCircle2,
+  Clock3,
+  History as HistoryIcon,
+  Sparkles,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { HistoryItem } from "@/src/types/game";
+import styles from "./GameHistoryPanel.module.css";
 
 interface GameHistoryPanelProps {
   history: HistoryItem[];
   selectedRoundNo: number | null;
   onSelectRound: (roundNo: number) => void;
+}
+
+type PerspectiveFilter = "all" | "user" | "system";
+type RoundStatus = "current" | "completed" | "warning" | "confirmed";
+
+interface RoundCardData {
+  roundNo: number;
+  items: HistoryItem[];
+  status: RoundStatus;
+  statusDetail?: string;
+}
+
+interface SecondaryLine {
+  label: string;
+  text: string;
+  tone: RoundStatus | "neutral";
+}
+
+const POSITIVE_MARKERS = [
+  "yes",
+  "true",
+  "correct",
+  "confirmed",
+  "confirm",
+  "是",
+  "对",
+  "正确",
+  "已确认",
+  "确认",
+  "猜对",
+];
+
+const NEGATIVE_MARKERS = [
+  "no",
+  "false",
+  "incorrect",
+  "wrong",
+  "不是",
+  "不对",
+  "错误",
+  "判定错误",
+  "词性不符",
+];
+
+function joinClasses(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
+
+function normalizeText(value?: string | null) {
+  return (value || "").trim().replace(/\s+/g, "").toLowerCase();
+}
+
+function containsMarker(value: string, markers: string[]) {
+  return markers.some((marker) => value.includes(normalizeText(marker)));
+}
+
+function isCodeLike(value?: string | null) {
+  const normalized = normalizeText(value);
+
+  return [
+    "pending",
+    "wrong_guess",
+    "agent_guess_wrong",
+    "guess_incorrect",
+    "user_asked_question",
+    "system_asks_question",
+    "system_makes_guess",
+    "user_answer_recorded",
+  ].includes(normalized);
+}
+
+function getStatusLabel(status: RoundStatus) {
+  switch (status) {
+    case "current":
+      return "进行中";
+    case "warning":
+      return "判定错误";
+    case "confirmed":
+      return "已确认";
+    case "completed":
+    default:
+      return "已完成";
+  }
+}
+
+function getStatusIcon(status: RoundStatus) {
+  switch (status) {
+    case "current":
+      return Clock3;
+    case "warning":
+      return AlertTriangle;
+    case "confirmed":
+    case "completed":
+    default:
+      return CheckCircle2;
+  }
 }
 
 function getActorLabel(actor: HistoryItem["actor"]) {
@@ -24,17 +128,28 @@ function getTurnTypeLabel(turnType: HistoryItem["turn_type"]) {
       return "系统猜测";
     case "judge":
       return "判断";
+    case "judge_agent_guess":
+      return "系统判定";
     default:
       return turnType;
   }
 }
 
-function getSummary(item: HistoryItem) {
-  return item.input_text || item.answer_text || item.hint || "暂无内容";
+function getFilterLabel(filter: PerspectiveFilter) {
+  switch (filter) {
+    case "all":
+      return "全部";
+    case "user":
+      return "我方";
+    case "system":
+      return "系统";
+    default:
+      return filter;
+  }
 }
 
 function formatConfidence(confidence?: number) {
-  if (confidence == null) return "未知";
+  if (confidence == null) return null;
 
   const value = confidence <= 1 ? confidence * 100 : confidence;
   return `${Math.round(value)}%`;
@@ -44,48 +159,240 @@ function formatLabelText(value?: string | boolean | null) {
   if (value === true) return "是";
   if (value === false) return "否";
   if (value == null) return "未知";
-  return value;
-}
 
-type PerspectiveFilter = "all" | "user" | "system";
-
-function getFilterLabel(filter: PerspectiveFilter) {
-  switch (filter) {
-    case "all":
-      return "全部";
-    case "user":
-      return "用户视角";
-    case "system":
-      return "系统视角";
+  switch (value) {
+    case "yes":
+      return "是";
+    case "no":
+      return "否";
+    case "unknown":
+      return "未知";
     default:
-      return filter;
+      return value;
   }
 }
 
-function getBadgeStyle(actor: HistoryItem["actor"]) {
-  return actor === "user"
-    ? "bg-on-surface/10 text-on-surface"
-    : "bg-primary-container/40 text-primary";
-}
-
-function getPillStyle(actor: HistoryItem["actor"], kind?: "secondary") {
-  if (kind === "secondary") {
-    return actor === "user"
-      ? "bg-primary/12 text-primary"
-      : "bg-secondary/12 text-secondary";
+function getPrimaryText(item: HistoryItem) {
+  if (item.turn_type === "guess") {
+    return item.input_text || item.hint || item.answer_text || "暂无内容";
   }
 
-  return actor === "user"
-    ? "bg-surface-container-high text-on-surface"
-    : "bg-tertiary-container/35 text-tertiary";
-}
-
-function buildVisibleSummary(item: HistoryItem) {
-  if (item.actor === "user") {
+  if (item.turn_type === "answer") {
     return item.input_text || item.answer_text || item.hint || "暂无内容";
   }
 
-  return item.answer_text || item.hint || item.input_text || "暂无内容";
+  return item.input_text || item.hint || item.answer_text || "暂无内容";
+}
+
+function extractReasonText(...values: Array<string | undefined>) {
+  for (const value of values) {
+    const raw = (value || "").trim();
+    if (!raw) {
+      continue;
+    }
+
+    if (
+      isCodeLike(raw) ||
+      /^[a-z_]+=.+$/i.test(raw) ||
+      /^[a-z_]+$/i.test(raw)
+    ) {
+      continue;
+    }
+
+    const labeledMatch = raw.match(
+      /(?:原因|理由|说明|详情|detail|reason)[:=：]\s*(.+)$/i,
+    );
+
+    if (labeledMatch?.[1]) {
+      return labeledMatch[1].trim();
+    }
+
+    const wrappedMatch = raw.match(/[（(]([^()（）]+)[）)]/);
+    if (wrappedMatch?.[1]) {
+      return wrappedMatch[1].trim();
+    }
+
+    return raw;
+  }
+
+  return "";
+}
+
+function getOutcomeText(status: RoundStatus, detail?: string) {
+  if (!detail) {
+    return status === "warning" ? "判定错误" : "已确认";
+  }
+
+  if (status === "warning") {
+    return detail.includes("错误") ? detail : `判定错误（${detail}）`;
+  }
+
+  if (status === "confirmed") {
+    return detail.includes("确认") ? detail : `已确认（${detail}）`;
+  }
+
+  return detail;
+}
+
+function getSecondaryLine(
+  item: HistoryItem,
+  status: RoundStatus,
+): SecondaryLine | null {
+  const responseText = extractReasonText(
+    item.result,
+    item.answer_text,
+    item.hint,
+  );
+
+  if (item.turn_type === "question" && responseText) {
+    return {
+      label: "AI 回答",
+      text: responseText,
+      tone: status,
+    };
+  }
+
+  if (item.turn_type === "ask" && responseText && !isCodeLike(responseText)) {
+    return {
+      label: "用户回应",
+      text: responseText,
+      tone: status,
+    };
+  }
+
+  if (item.turn_type === "guess") {
+    const outcomeText = getOutcomeText(status, responseText);
+
+    if (outcomeText && !isCodeLike(outcomeText)) {
+      return {
+        label:
+          status === "warning"
+            ? "判定错误"
+            : status === "confirmed"
+              ? "已确认"
+              : "结果",
+        text: outcomeText,
+        tone: status,
+      };
+    }
+  }
+
+  if (
+    (item.turn_type === "judge" || item.turn_type === "judge_agent_guess") &&
+    responseText
+  ) {
+    return {
+      label: "判定结果",
+      text: getOutcomeText(status, responseText),
+      tone: status,
+    };
+  }
+
+  if (item.turn_type === "answer" && item.answer_text) {
+    return {
+      label: "回答状态",
+      text: formatLabelText(item.answer_text),
+      tone: "neutral",
+    };
+  }
+
+  return null;
+}
+
+function classifyRound(
+  items: HistoryItem[],
+  isLatestRound: boolean,
+): RoundCardData {
+  let status: RoundStatus = isLatestRound ? "current" : "completed";
+  let statusDetail: string | undefined;
+
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const item = items[index];
+    const normalized = normalizeText(
+      [item.result, item.answer_text, item.hint, item.input_text]
+        .filter(Boolean)
+        .join(" "),
+    );
+
+    const positiveSignal =
+      item.answer_label === "yes" ||
+      containsMarker(normalized, POSITIVE_MARKERS);
+    const negativeSignal =
+      item.answer_label === "no" ||
+      containsMarker(normalized, NEGATIVE_MARKERS);
+
+    if (negativeSignal) {
+      status = "warning";
+      statusDetail = extractReasonText(
+        item.result,
+        item.hint,
+        item.answer_text,
+        item.input_text,
+      );
+      break;
+    }
+
+    if (positiveSignal) {
+      status = "confirmed";
+      statusDetail = extractReasonText(
+        item.result,
+        item.hint,
+        item.answer_text,
+        item.input_text,
+      );
+      break;
+    }
+  }
+
+  if (!isLatestRound && status === "current") {
+    status = "completed";
+  }
+
+  return {
+    roundNo: items[0].round_no,
+    items,
+    status,
+    statusDetail,
+  };
+}
+
+function getRoundCardClass(status: RoundStatus, isSelected: boolean) {
+  return joinClasses(
+    styles.roundCard,
+    status === "current" && styles.roundCardCurrent,
+    status === "warning" && styles.roundCardWarning,
+    status === "confirmed" && styles.roundCardConfirmed,
+    isSelected && styles.roundCardSelected,
+  );
+}
+
+function getRoundDotClass(status: RoundStatus, isSelected: boolean) {
+  return joinClasses(
+    styles.timelineDot,
+    status === "current" && styles.timelineDotCurrent,
+    status === "warning" && styles.timelineDotWarning,
+    status === "confirmed" && styles.timelineDotConfirmed,
+    isSelected && styles.timelineDotSelected,
+  );
+}
+
+function getStatusTagClass(status: RoundStatus) {
+  return joinClasses(
+    styles.statusTag,
+    status === "current" && styles.statusTagCurrent,
+    status === "completed" && styles.statusTagCompleted,
+    status === "warning" && styles.statusTagWarning,
+    status === "confirmed" && styles.statusTagConfirmed,
+  );
+}
+
+function getStatusNoteClass(status: RoundStatus) {
+  return joinClasses(
+    styles.statusNote,
+    status === "current" && styles.statusNoteCurrent,
+    status === "warning" && styles.statusNoteWarning,
+    status === "confirmed" && styles.statusNoteConfirmed,
+  );
 }
 
 export default function GameHistoryPanel({
@@ -95,139 +402,155 @@ export default function GameHistoryPanel({
 }: GameHistoryPanelProps) {
   const [filter, setFilter] = useState<PerspectiveFilter>("all");
 
-  const sortedHistory = useMemo(
-    () => [...history].sort((left, right) => right.round_no - left.round_no),
-    [history],
-  );
+  const sortedHistory = useMemo(() => {
+    return [...history].sort((left, right) => right.round_no - left.round_no);
+  }, [history]);
 
-  const visibleHistory = useMemo(() => {
-    if (filter === "all") return sortedHistory;
+  const roundCards = useMemo(() => {
+    const roundBuckets = new Map<number, HistoryItem[]>();
 
-    return sortedHistory.filter((item) =>
-      filter === "user" ? item.actor === "user" : item.actor === "system",
+    for (const item of sortedHistory) {
+      const bucket = roundBuckets.get(item.round_no);
+
+      if (bucket) {
+        bucket.push(item);
+      } else {
+        roundBuckets.set(item.round_no, [item]);
+      }
+    }
+
+    const latestRoundNo = sortedHistory[0]?.round_no;
+
+    return Array.from(roundBuckets.values()).map((items) =>
+      classifyRound(items, items[0].round_no === latestRoundNo),
     );
-  }, [filter, sortedHistory]);
+  }, [sortedHistory]);
+
+  const visibleRounds = useMemo(() => {
+    if (filter === "all") {
+      return roundCards;
+    }
+
+    return roundCards.filter((round) =>
+      round.items.some((item) => item.actor === filter),
+    );
+  }, [filter, roundCards]);
 
   useEffect(() => {
-    if (!visibleHistory.length) return;
+    if (!visibleRounds.length) return;
 
-    const selectedVisible = visibleHistory.some(
-      (item) => item.round_no === selectedRoundNo,
+    const selectedVisible = visibleRounds.some(
+      (item) => item.roundNo === selectedRoundNo,
     );
 
     if (!selectedVisible) {
-      onSelectRound(visibleHistory[0].round_no);
+      onSelectRound(visibleRounds[0].roundNo);
     }
-  }, [onSelectRound, selectedRoundNo, visibleHistory]);
+  }, [onSelectRound, selectedRoundNo, visibleRounds]);
 
-  const selectedItem = useMemo(() => {
-    if (visibleHistory.length === 0) return null;
+  const selectedRound = useMemo(() => {
+    if (visibleRounds.length === 0) return null;
 
     if (selectedRoundNo != null) {
       return (
-        visibleHistory.find((item) => item.round_no === selectedRoundNo) ||
-        visibleHistory[0]
+        visibleRounds.find((item) => item.roundNo === selectedRoundNo) ||
+        visibleRounds[0]
       );
     }
 
-    return visibleHistory[0];
-  }, [selectedRoundNo, visibleHistory]);
+    return visibleRounds[0];
+  }, [selectedRoundNo, visibleRounds]);
 
-  const renderEntryBody = (item: HistoryItem, expanded: boolean) => {
-    if (item.actor === "user") {
-      return (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold ${getPillStyle(
-                item.actor,
-              )}`}
-            >
-              用户
-            </span>
-            <p className="text-sm leading-relaxed text-on-surface">
-              {item.input_text || item.answer_text || item.hint || "暂无内容"}
-            </p>
-          </div>
-
-          {expanded && (item.answer_text || item.hint) && (
-            <div className="flex items-center gap-2">
-              <span
-                className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold ${getPillStyle(
-                  item.actor,
-                  "secondary",
-                )}`}
-              >
-                AI
-              </span>
-              <p className="text-sm leading-relaxed text-on-surface-variant">
-                {item.answer_text || item.hint}
-              </p>
-            </div>
-          )}
-        </div>
-      );
-    }
+  const renderTurnBlock = (item: HistoryItem, roundStatus: RoundStatus) => {
+    const secondaryLine = getSecondaryLine(item, roundStatus);
+    const confidenceLabel = formatConfidence(item.confidence);
 
     return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold ${getPillStyle(
-              item.actor,
-            )}`}
-          >
-            系统
-          </span>
-          <p className="text-sm leading-relaxed text-on-surface">
-            {item.input_text || item.hint || "暂无内容"}
-          </p>
+      <section className={styles.turnBlock}>
+        <div className={styles.turnBlockHead}>
+          <div className={styles.turnTags}>
+            <span
+              className={joinClasses(
+                styles.actorPill,
+                item.actor === "user"
+                  ? styles.actorPillUser
+                  : styles.actorPillSystem,
+              )}
+            >
+              {getActorLabel(item.actor)}
+            </span>
+            <span className={styles.turnTypePill}>
+              {getTurnTypeLabel(item.turn_type)}
+            </span>
+          </div>
+
+          {confidenceLabel && (
+            <span className={styles.confidencePill}>{confidenceLabel}</span>
+          )}
         </div>
 
-        {expanded && (
-          <div className="flex items-center gap-2">
+        <div className={styles.turnMain}>{getPrimaryText(item)}</div>
+
+        {secondaryLine && (
+          <div className={styles.turnSecondary}>
             <span
-              className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold ${getPillStyle(
-                item.actor,
-                "secondary",
-              )}`}
+              className={joinClasses(
+                styles.turnSecondaryLabel,
+                secondaryLine.tone === "warning" &&
+                  styles.turnSecondaryLabelWarning,
+                secondaryLine.tone === "confirmed" &&
+                  styles.turnSecondaryLabelConfirmed,
+                secondaryLine.tone === "current" &&
+                  styles.turnSecondaryLabelCurrent,
+                secondaryLine.tone === "neutral" &&
+                  styles.turnSecondaryLabelNeutral,
+                secondaryLine.tone === "completed" &&
+                  styles.turnSecondaryLabelNeutral,
+              )}
             >
-              结果
+              {secondaryLine.label}
             </span>
-            <p className="text-sm leading-relaxed text-on-surface-variant">
-              {item.answer_text ||
-                item.hint ||
-                formatLabelText(item.answer_label)}
-            </p>
+            <span className={styles.turnSecondaryText}>
+              {secondaryLine.text}
+            </span>
           </div>
         )}
-      </div>
+      </section>
     );
   };
 
-  return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="rounded-[2rem] bg-gradient-to-br from-primary/8 to-primary/4 px-5 py-5 ring-1 ring-primary/10">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-container/60 text-primary">
-            <HistoryIcon className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-on-surface-variant/60">
-              回合历史
-            </p>
-            <h3 className="mt-1 font-headline text-xl font-extrabold text-on-surface">
-              详情查看与切换
-            </h3>
-          </div>
+  const renderRoundNote = (round: RoundCardData) => {
+    if (round.status === "current") {
+      return (
+        <div className={getStatusNoteClass(round.status)}>
+          当前回合仍在推进中，记录会随着后续输入继续补全。
         </div>
-        <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
-          点击任意记录后，右侧内容会切换为对应回合的展开详情。
-        </p>
-      </div>
+      );
+    }
 
-      <div className="mt-5 flex-1 min-h-0 overflow-hidden rounded-[2rem] bg-surface-container-low/60 p-4 ring-1 ring-outline/10">
-        <div className="flex items-center justify-between gap-3 rounded-[1.5rem] bg-surface-container-low px-1 py-1">
+    if (round.status === "warning") {
+      return (
+        <div className={getStatusNoteClass(round.status)}>
+          错误原因：{getOutcomeText(round.status, round.statusDetail)}
+        </div>
+      );
+    }
+
+    if (round.status === "confirmed") {
+      return (
+        <div className={getStatusNoteClass(round.status)}>
+          已确认：{getOutcomeText(round.status, round.statusDetail)}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <div className={styles.panel}>
+      <div className={styles.header}>
+        <div className={styles.filterBar}>
           {(["all", "user", "system"] as PerspectiveFilter[]).map((item) => {
             const active = filter === item;
 
@@ -236,116 +559,86 @@ export default function GameHistoryPanel({
                 key={item}
                 type="button"
                 onClick={() => setFilter(item)}
-                className={`flex-1 rounded-[1.25rem] px-4 py-3 text-sm font-bold transition-all duration-200 ${
-                  active
-                    ? "bg-primary-container text-on-primary-container shadow-[0_8px_18px_rgba(0,108,90,0.12)]"
-                    : "text-on-surface-variant hover:text-on-surface"
-                }`}
+                className={joinClasses(
+                  styles.filterButton,
+                  active && styles.filterButtonActive,
+                )}
               >
                 {getFilterLabel(item)}
               </button>
             );
           })}
         </div>
+      </div>
 
-        <div className="mt-5 flex h-full min-h-0 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-y-auto pb-6 pr-1">
-            {visibleHistory.length > 0 ? (
-              <div className="space-y-5">
-                {visibleHistory.map((item, index) => {
-                  const isSelected = item.round_no === selectedItem?.round_no;
-                  const isUser = item.actor === "user";
+      <div className={styles.body}>
+        <div className={styles.list}>
+          {visibleRounds.length > 0 ? (
+            visibleRounds.map((round, index) => {
+              const isSelected = round.roundNo === selectedRound?.roundNo;
+              const StatusIcon = getStatusIcon(round.status);
 
-                  return (
+              return (
+                <div className={styles.roundRow} key={round.roundNo}>
+                  <div className={styles.timelineRail}>
                     <div
-                      key={`${item.round_no}-${item.turn_type}-${item.actor}`}
-                    >
-                      <div className="mb-2 flex items-center justify-between px-1">
-                        <span
-                          className={`text-sm font-headline font-bold uppercase tracking-tighter ${
-                            isSelected ? "text-primary" : "text-slate-400"
-                          }`}
-                        >
-                          回合 {String(item.round_no).padStart(2, "0")}
+                      className={getRoundDotClass(round.status, isSelected)}
+                    />
+                    {index !== visibleRounds.length - 1 && (
+                      <div className={styles.timelineLine} />
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onSelectRound(round.roundNo)}
+                    className={getRoundCardClass(round.status, isSelected)}
+                    aria-pressed={isSelected}
+                  >
+                    <div className={styles.cardHeader}>
+                      <div className={styles.headerTags}>
+                        <span className={styles.roundBadge}>
+                          回合 {String(round.roundNo).padStart(2, "0")}
                         </span>
-                        <span className="text-[10px] font-medium text-slate-400">
-                          {index === 0 ? "刚刚" : `${index * 4}分钟前`}
+                        <span className={getStatusTagClass(round.status)}>
+                          <StatusIcon className={styles.statusIcon} />
+                          {getStatusLabel(round.status)}
                         </span>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => onSelectRound(item.round_no)}
-                        className={`group relative flex w-full items-start gap-4 rounded-[1.5rem] p-4 text-left transition-all duration-200 ${
-                          isSelected
-                            ? "bg-white shadow-[0_10px_28px_rgba(45,51,53,0.08)] ring-1 ring-outline/10"
-                            : "bg-white/70 shadow-[0_6px_18px_rgba(45,51,53,0.04)]"
-                        }`}
-                      >
-                        <div className="relative flex flex-col items-center pt-2">
-                          <div
-                            className={`h-5 w-5 rounded-full ring-4 ring-surface-container-low transition-all duration-200 ${
-                              isSelected
-                                ? "bg-primary scale-110"
-                                : isUser
-                                  ? "bg-primary/70"
-                                  : "bg-slate-300"
-                            }`}
-                          />
-                          {index !== visibleHistory.length - 1 && (
-                            <div className="mt-1 h-[calc(100%-1rem)] w-0.5 bg-primary/12" />
-                          )}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-3 flex items-center justify-between gap-3">
-                            <span
-                              className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold ${getBadgeStyle(
-                                item.actor,
-                              )}`}
-                            >
-                              {getActorLabel(item.actor)}
-                            </span>
-                            <span className="text-[10px] font-medium text-slate-400">
-                              {getTurnTypeLabel(item.turn_type)}
-                            </span>
-                          </div>
-
-                          <div className="rounded-[1.25rem] bg-surface px-4 py-4">
-                            {renderEntryBody(item, isSelected)}
-                          </div>
-                        </div>
-                      </button>
+                      <span className={styles.roundMeta}>
+                        {round.items.length} 条消息
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex h-full items-center justify-center rounded-[1.5rem] bg-white/70 px-6 py-10 text-center shadow-[0_6px_18px_rgba(45,51,53,0.04)]">
-                <div>
-                  <Bot className="mx-auto h-10 w-10 text-primary/40" />
-                  <p className="mt-3 text-sm font-medium text-on-surface-variant">
-                    暂无可展示的回合记录
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
 
-          <div className="mt-auto rounded-[1.5rem] bg-primary/6 px-4 py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-on-primary shadow-[0_8px_18px_rgba(0,108,90,0.16)]">
-                <Sparkles className="h-5 w-5" />
-              </div>
+                    <div className={styles.turnList}>
+                      {round.items.map((item, itemIndex) => (
+                        <div
+                          key={`${round.roundNo}-${itemIndex}-${item.actor}-${item.turn_type}`}
+                        >
+                          {renderTurnBlock(item, round.status)}
+                        </div>
+                      ))}
+                    </div>
+
+                    {renderRoundNote(round)}
+                  </button>
+                </div>
+              );
+            })
+          ) : (
+            <div className={styles.emptyState}>
               <div>
-                <p className="text-xs font-bold text-primary">系统洞察</p>
-                <p className="text-[11px] leading-relaxed text-primary/70">
-                  当前已记录 {sortedHistory.length}{" "}
-                  个回合，点击任意卡片可查看展开内容。
+                <div className={styles.emptyIconWrap}>
+                  <Bot className={styles.emptyIcon} />
+                </div>
+                <p className={styles.emptyTitle}>暂无可展示的回合记录</p>
+                <p className={styles.emptyText}>
+                  当前筛选条件下没有可见的回合内容。
                 </p>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

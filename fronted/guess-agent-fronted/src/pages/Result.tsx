@@ -1,137 +1,195 @@
-import { Trophy, GitBranch, Timer, Brain, Bike } from 'lucide-react';
-import { motion } from 'motion/react';
+import {
+  AlertTriangle,
+  Brain,
+  GitBranch,
+  Home,
+  RefreshCcw,
+  Sparkles,
+  Target,
+  Timer,
+  Trophy,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import styles from "./Result.module.css";
+import { GameEndStats, GameOutcome } from "@/src/types/game";
 
 interface ResultProps {
-  stats: { rounds: number; time: string };
+  outcome: GameOutcome;
+  stats: GameEndStats;
   onRestart: () => void;
   onHome: () => void;
 }
 
-export default function Result({ stats, onRestart, onHome }: ResultProps) {
+function clampConfidence(value: number) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string | number;
+}) {
   return (
-    <div className="space-y-16 pb-12">
-      {/* Victory Banner */}
-      <section className="text-center pt-8">
-        <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="inline-flex items-center justify-center gap-3 bg-primary-container text-on-primary-container px-8 py-3 rounded-full mb-8"
-        >
-          <Trophy className="w-5 h-5 fill-current" />
-          <span className="text-[10px] font-bold tracking-[0.2em] uppercase">挑战完成</span>
-        </motion.div>
-        <motion.h2 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="font-headline text-7xl md:text-9xl font-extrabold tracking-tighter text-primary mb-4"
-        >
-          胜利
-        </motion.h2>
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="font-body text-on-surface-variant text-lg max-w-sm mx-auto font-medium leading-relaxed"
-        >
-          以太向导对此印象深刻。你的直觉在未知中开辟了一条道路。
-        </motion.p>
-      </section>
+    <div className={styles.statCard}>
+      <Icon className={styles.statCardIcon} />
+      <div>
+        <div className={styles.statCardLabel}>{label}</div>
+        <div className={styles.statCardValue}>{value}</div>
+      </div>
+    </div>
+  );
+}
 
-      {/* Result Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Target Word Card */}
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="md:col-span-7 relative group overflow-hidden bg-surface-container-lowest rounded-[2.5rem] p-1.5 shadow-sm"
-        >
-          <div className="bg-surface rounded-[2rem] p-10 h-full flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute -right-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-            <span className="text-on-surface-variant font-bold text-[10px] uppercase tracking-[0.3em] mb-6 block">正确答案：</span>
-            <div className="flex items-baseline gap-4">
-              <span className="font-headline text-6xl md:text-8xl font-bold text-on-surface tracking-tighter">BICYCLE</span>
-            </div>
-            <div className="mt-12 flex items-center text-primary/30">
-              <Bike className="w-10 h-10" />
-              <div className="ml-6 h-[1px] flex-grow bg-outline-variant/20" />
-            </div>
+function ResultActions({
+  onRestart,
+  onHome,
+  primaryLabel,
+}: {
+  onRestart: () => void;
+  onHome: () => void;
+  primaryLabel: string;
+}) {
+  return (
+    <div className={styles.actions}>
+      <button
+        type="button"
+        onClick={onRestart}
+        className={styles.primaryButton}
+      >
+        <RefreshCcw className={styles.buttonIcon} />
+        {primaryLabel}
+      </button>
+      <button type="button" onClick={onHome} className={styles.secondaryButton}>
+        <Home className={styles.buttonIcon} />
+        返回首页
+      </button>
+    </div>
+  );
+}
+
+function VictoryResult({ stats, onRestart, onHome }: ResultProps) {
+  const confidence = clampConfidence(stats.confidence ?? 85);
+  const targetWord = stats.revealedWord || "答案已确认";
+  const message =
+    stats.message || "以太向导对此印象深刻。你的直觉在未知中开辟了一条道路。";
+
+  return (
+    <section className={`${styles.resultPage} ${styles.resultPageWin}`}>
+      <div className={styles.resultShell}>
+        <header className={styles.hero}>
+          <div className={styles.badge}>
+            <Trophy className={styles.badgeIcon} />
+            <span>挑战完成</span>
           </div>
-        </motion.div>
+          <h2 className={styles.title}>胜利</h2>
+          <p className={styles.subtitle}>{message}</p>
+        </header>
 
-        {/* Stats Section */}
-        <div className="md:col-span-5 grid grid-cols-2 gap-4">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            className="bg-surface-container-low rounded-[2rem] p-8 flex flex-col justify-between"
-          >
-            <GitBranch className="w-8 h-8 text-secondary mb-6" />
-            <div>
-              <div className="font-headline text-4xl font-bold text-on-surface">{stats.rounds}</div>
-              <div className="font-bold text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">使用轮次</div>
+        <div className={styles.grid}>
+          <article className={styles.mainCard}>
+            <span className={styles.cardLabel}>正确答案</span>
+            <div className={styles.wordRow}>
+              <Target className={styles.cardIcon} />
+              <div className={styles.wordValue}>{targetWord}</div>
             </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
-            className="bg-surface-container-low rounded-[2rem] p-8 flex flex-col justify-between"
-          >
-            <Timer className="w-8 h-8 text-secondary mb-6" />
-            <div>
-              <div className="font-headline text-4xl font-bold text-on-surface">{stats.time}</div>
-              <div className="font-bold text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">总用时</div>
+            <div className={styles.cardFoot}>
+              <Sparkles className={styles.footIcon} />
+              <div className={styles.footDivider} />
             </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="col-span-2 glass-card rounded-[2rem] p-8 relative overflow-hidden"
-          >
-            <div className="relative z-10">
-              <div className="flex justify-between items-end mb-6">
+          </article>
+
+          <div className={styles.statsGrid}>
+            <StatCard icon={GitBranch} label="使用轮次" value={stats.rounds} />
+            <StatCard icon={Timer} label="总用时" value={stats.time} />
+          </div>
+        </div>
+
+        <ResultActions
+          onRestart={onRestart}
+          onHome={onHome}
+          primaryLabel="再玩一次"
+        />
+      </div>
+    </section>
+  );
+}
+
+function FailureResult({ stats, onRestart, onHome }: ResultProps) {
+  const confidence = clampConfidence(stats.confidence ?? 98);
+  const targetWord = stats.revealedWord || "答案已揭晓";
+  const message =
+    stats.message ||
+    "这一次，答案比你更快一步。换个角度重新出发，下一局会更接近。";
+
+  return (
+    <section className={`${styles.resultPage} ${styles.resultPageLose}`}>
+      <div className={styles.resultShell}>
+        <header className={styles.hero}>
+          <div className={styles.badgeLose}>
+            <AlertTriangle className={styles.badgeIcon} />
+            <span>挑战结束</span>
+          </div>
+          <h2 className={styles.titleLose}>失败</h2>
+          <p className={styles.subtitle}>{message}</p>
+        </header>
+
+        <div className={styles.grid}>
+          <article className={styles.mainCardLose}>
+            <span className={styles.cardLabel}>目标词汇</span>
+            <div className={styles.wordRow}>
+              <Target className={styles.cardIcon} />
+              <div className={styles.wordValueLose}>{targetWord}</div>
+            </div>
+            <div className={styles.reviewCard}>
+              <Sparkles className={styles.reviewIcon} />
+              <p className={styles.reviewText}>
+                你已经摸到答案的边缘了，只差最后一次判断。
+              </p>
+            </div>
+          </article>
+
+          <div className={styles.statsGrid}>
+            <StatCard icon={GitBranch} label="使用轮次" value={stats.rounds} />
+            <StatCard icon={Timer} label="总用时" value={stats.time} />
+
+            <article
+              className={`${styles.statCard} ${styles.statCardWideLose}`}
+            >
+              <div className={styles.confidenceHead}>
                 <div>
-                  <Brain className="w-6 h-6 text-tertiary mb-2 fill-current" />
-                  <div className="font-bold text-[9px] uppercase tracking-widest text-on-surface-variant">AI 信心指数</div>
+                  <Brain className={styles.confidenceIconLose} />
+                  <div className={styles.statCardLabel}>AI 信心指数</div>
                 </div>
-                <div className="font-headline text-5xl font-bold text-tertiary">85%</div>
+                <div className={styles.confidenceValueLose}>{confidence}%</div>
               </div>
-              <div className="h-2.5 w-full bg-surface-variant/30 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: '85%' }}
-                  transition={{ delay: 1, duration: 1.5, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-tertiary to-tertiary-container rounded-full" 
+              <div className={styles.progressTrackLose} aria-hidden="true">
+                <div
+                  className={styles.progressFillLose}
+                  style={{ width: `${confidence}%` }}
                 />
               </div>
-            </div>
-          </motion.div>
+            </article>
+          </div>
         </div>
-      </div>
 
-      {/* Action Buttons */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="flex flex-col md:flex-row gap-4 justify-center items-center"
-      >
-        <button 
-          onClick={onRestart}
-          className="w-full md:w-64 btn-primary-gradient font-headline font-bold py-6 rounded-2xl text-lg"
-        >
-          再玩一次
-        </button>
-        <button 
-          onClick={onHome}
-          className="w-full md:w-64 bg-secondary-container text-on-secondary-container font-headline font-bold py-6 rounded-2xl text-lg hover:opacity-80 transition-all active:scale-95"
-        >
-          返回首页
-        </button>
-      </motion.div>
-    </div>
+        <ResultActions
+          onRestart={onRestart}
+          onHome={onHome}
+          primaryLabel="重新挑战"
+        />
+      </div>
+    </section>
+  );
+}
+
+export default function Result(props: ResultProps) {
+  return props.outcome === "win" ? (
+    <VictoryResult {...props} />
+  ) : (
+    <FailureResult {...props} />
   );
 }

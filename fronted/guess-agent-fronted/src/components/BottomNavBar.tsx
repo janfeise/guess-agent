@@ -1,9 +1,9 @@
-import { Gamepad2, History, BookOpen } from "lucide-react";
+import { Gamepad2, History, BookOpen, Book } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
 interface BottomNavBarProps {
-  active: "home" | "history" | "rules";
-  onNavigate: (page: "home" | "history" | "rules") => void;
+  active: "home" | "history" | "project";
+  onNavigate: (page: "home" | "history" | "project") => void;
 }
 
 export default function BottomNavBar({
@@ -13,7 +13,7 @@ export default function BottomNavBar({
   const items = [
     { id: "home", label: "首页", icon: Gamepad2 },
     { id: "history", label: "历史", icon: History },
-    { id: "rules", label: "规则", icon: BookOpen },
+    { id: "project", label: "项目", icon: BookOpen },
   ] as const;
 
   return (
@@ -29,12 +29,11 @@ export default function BottomNavBar({
             className={cn(
               "flex flex-col items-center justify-center px-6 py-2 rounded-2xl transition-all duration-300 active:scale-95",
               isActive
-                ? "bg-primary-container text-primary translate-y-[-4px]"
+                ? "bg-primary-container text-primary translate-y-[-4px] shadow-sm"
                 : "text-on-surface-variant hover:text-primary",
             )}
           >
             <Icon className={cn("w-6 h-6")} />
-            {/* <Icon className={cn("w-6 h-6", isActive && "fill-current")} /> */}
             <span className="text-[10px] font-bold uppercase tracking-widest mt-1.5">
               {item.label}
             </span>

@@ -10,6 +10,7 @@ import GameAssistantPanel from "./GameAssistantPanel";
 import GameHistoryPanel from "./GameHistoryPanel";
 import { GameState } from "@/src/types/game";
 import styles from "./GameDrawer.module.css";
+import { useAnonymousStore } from "@/src/store/useAnonymousStore";
 
 export type GameDrawerTab = "assistant" | "history";
 
@@ -118,7 +119,7 @@ export default function GameDrawer({
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32 }}
-            className="fixed inset-y-0 left-0 z-[60] w-full max-w-[min(92vw,30rem)] flex flex-col overflow-hidden border-outline/10 bg-surface/95 shadow-[0_24px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+            className={`fixed inset-y-0 left-0 z-[60] w-full max-w-[min(92vw,30rem)] flex flex-col overflow-hidden border-outline/10 bg-surface/95 shadow-[0_24px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl ${styles.drawer}`}
           >
             <div className={styles.drawerHeader}>
               <h2 className={styles.drawerTitle}>词汇情报</h2>

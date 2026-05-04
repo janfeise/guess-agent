@@ -11,8 +11,6 @@ from app.core.constants import validate_start_word
 from app.core.security import decrypt, encrypt
 from cryptography.fernet import InvalidToken
 
-from .utils.turn_lock import TurnLock
-
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +39,7 @@ class GameService:
 			"last_actor": "system",
 			"last_intent": None,
 			"awaiting_judgement": False,
-			"awaiting_answer": False,
+			"waiting_answer": False,
 			"pending_guess": "",
 			"pending_question": "",
 			"agent_confidence": 0.0,
@@ -80,27 +78,6 @@ class GameService:
 		if hint is not None:
 			item["hint"] = hint
 		return item
-
-	@staticmethod
-	def _get_turn_lock_state(game: dict) -> dict:
-		metadata = game.get("metadata", {}) or {}
-		return {
-			"phase": metadata.get("phase", "user_turn"),
-			"next_actor": metadata.get("next_actor", "user"),
-			"expected_turn_type": metadata.get("expected_turn_type", "question"),
-			"last_actor": metadata.get("last_actor", "system"),
-			"last_intent": metadata.get("last_intent"),
-		}
-
-	@staticmethod
-	def _is_turn_allowed(phase: str, intent: str) -> bool:
-		if phase == "awaiting_answer":
-			return intent == "answer"
-		if phase == "awaiting_judgement":
-			return intent in {"judge", "answer"}
-		if phase == "user_turn":
-			return intent in {"question", "guess"}
-		return intent == "question"
 
 	@staticmethod
 	def _reject_turn(game_id: str, phase: str, message: str, history: list[dict] | None = None):
@@ -159,6 +136,103 @@ class GameService:
 		return sanitized
 
 	@staticmethod
+	def _build_detail_history(history: list[dict], include_hidden: bool = False) -> list[dict]:
+		visible_history = []
+		for item in history or []:
+			if not isinstance(item, dict):
+				continue
+			if not include_hidden and item.get("visible_to_player") is False:
+				continue
+			visible_history.append(
+				{
+					"round_no": item.get("round_no"),
+					"actor": item.get("actor"),
+					"turn_type": item.get("turn_type"),
+					"input_text": item.get("input_text", ""),
+					"answer_text": item.get("answer_text", ""),
+					"answer_label": item.get("answer_label"),
+					"hint": item.get("hint"),
+					"confidence": item.get("confidence", 0.0),
+				}
+			)
+		return visible_history
+
+	def _format_game_detail(self, game: dict, user_id: str | None = None) -> dict:
+		owner_id = game.get("owner_id")
+		if owner_id and owner_id != user_id:
+			raise PermissionError(f"User {user_id or 'anonymous'} is not allowed to access game {game.get('game_id')}")
+
+		metadata = dict(game.get("metadata") or {})
+		status = (game.get("status") or "").lower()
+		include_hidden_history = status == "finished"
+		response = {
+			"game_id": game.get("game_id"),
+			"status": game.get("status", "active"),
+			"owner_id": owner_id,
+			"difficulty": game.get("difficulty"),
+			"user_word": game.get("user_word"),
+			"round_count": game.get("round_count", 0),
+			"summary": game.get("summary", ""),
+			"history": self._build_detail_history(game.get("history", []), include_hidden=include_hidden_history),
+			"metadata": metadata,
+			"created_at": game.get("created_at"),
+			"updated_at": game.get("updated_at"),
+		}
+
+		if status == "finished":
+			response.update(
+				{
+					"finished_at": game.get("finished_at"),
+					"finish_reason": game.get("finish_reason"),
+					"system_word_encrypted": game.get("system_word_encrypted"),
+					"target_word_source": game.get("target_word_source"),
+				}
+			)
+			return response
+
+		response["progress"] = {
+			"phase": metadata.get("phase", "user_turn"),
+			"next_actor": metadata.get("next_actor", "user"),
+			"expected_turn_type": metadata.get("expected_turn_type", "question"),
+			"waiting_answer": metadata.get("waiting_answer", False),
+			"awaiting_judgement": metadata.get("awaiting_judgement", False),
+			"pending_question": metadata.get("pending_question", ""),
+			"pending_guess": metadata.get("pending_guess", ""),
+			"agent_confidence": metadata.get("agent_confidence", 0.0),
+			"last_actor": metadata.get("last_actor", "system"),
+			"last_intent": metadata.get("last_intent"),
+		}
+		return response
+
+	async def get_game_details(self, game_id: str, user_id: str | None = None) -> dict:
+		game = await self.repository.get_game(game_id)
+		if not game:
+			raise ValueError(f"Game with id {game_id} not found")
+		return self._format_game_detail(game, user_id=user_id)
+
+	async def get_user_game_history(self, user_id: str) -> dict:
+		if not user_id or not user_id.strip():
+			raise ValueError("userId is required")
+
+		clean_user_id = user_id.strip()
+		game_docs = await self.repository.list_games_by_owner(clean_user_id)
+		games = []
+		for game_doc in game_docs:
+			game_id = game_doc.get("game_id")
+			if not game_id:
+				continue
+			try:
+				games.append(await self.get_game_details(game_id, user_id=clean_user_id))
+			except ValueError:
+				continue
+
+		return {
+			"user_id": clean_user_id,
+			"total": len(games),
+			"games": games,
+		}
+
+	@staticmethod
 	def reveal_target_word(game_doc: dict, settings) -> str:
 		system_password_encrypted = game_doc["system_password_encrypted"]
 		system_password = decrypt(system_password_encrypted, settings.encryption_secret)
@@ -206,6 +280,21 @@ class GameService:
 		if candidate in unknown_tokens:
 			return "unknown"
 		return None
+
+	@staticmethod
+	def _is_guess_confirmation_question(question: str) -> bool:
+		normalized_question = re.sub(r"\s+", "", (question or "").strip())
+		if not normalized_question:
+			return False
+
+		direct_guess_patterns = [
+			r"^我猜你想的词是[:：].+(?:吗|吗？|对吗|对不对)$",
+			r"^我猜你(?:是|想的是|想的词是).+(?:吗|吗？|对吗|对不对)$",
+			r"^(?:这个人|这位|他|她|它|这个词|这个名字|这个东西|这个角色|这个概念|这个答案)是.+(?:吗|吗？|对吗|对不对)$",
+			r"^(?:是不是|是否是).+(?:吗|吗？|对吗|对不对)?$",
+		]
+
+		return any(re.match(pattern, normalized_question) for pattern in direct_guess_patterns)
 
 	async def create_game(self, owner_id=None, user_word: str | None = None, difficulty: str | None = None):
 		if not user_word:
@@ -313,6 +402,17 @@ class GameService:
 		}
 
 	async def submit_turn(self, game_id: str, question: str, mode: str = "agent", turn_type: str = "input"):
+		"""
+		【重构版本】处理用户提交的回合，使用 FSM 统一管理状态转换。
+		
+		流程：
+		1. 获取游戏数据
+		2. 使用 FSM 进行状态转换和轮次锁检查
+		3. 根据 FSM 返回的 handler_name 调用相应的业务处理方法
+		4. 更新游戏状态和历史
+		"""
+		from app.core.guessGameFSM import GuessGameFSM
+		
 		game = await self.repository.get_game(game_id)
 		if not game:
 			raise ValueError(f"Game with id {game_id} not found")
@@ -322,35 +422,79 @@ class GameService:
 		metadata = game.get("metadata", {}) or {}
 		phase = metadata.get("phase", "user_turn")
 		history = game.get("history", [])
+		round_count = len(history)
 
-		# 获取解密后的系统词用于意图识别
-		system_word = self.reveal_target_word(game, self.settings)
-		intent_result = await self.agent.parse_user_intent(question, history, system_word)
+		# 创建 FSM 实例，从数据库状态初始化
+		fsm = GuessGameFSM(initial_state=phase, initial_round_count=round_count)
+
+		# 仅在需要猜词判定时再解密系统词，避免轮次锁校验被无关字段阻塞
+		system_word = None
+		intent_result = await self.agent.parse_user_intent(
+			question,
+			history,
+			system_word,
+			current_phase=phase,
+			pending_question=metadata.get("pending_question", ""),
+			pending_guess=metadata.get("pending_guess", ""),
+		)
 		intent = intent_result.get("intent", "invalid")
 
-		# 轮次锁校验：根据 phase 判断当前允许的意图
-		if phase == "awaiting_judgement":
-			if intent not in {"judge", "answer"}:
-				return self._reject_turn(game_id, phase, "请先判断系统猜测是否正确", history)
-			return await self._handle_agent_guess_judgement(game, question)
+		# ===== 意图修正 =====
+		if phase == GuessGameFSM.State.AWAITING_JUDGEMENT:
+			if intent == GuessGameFSM.Intent.ANSWER:
+				intent = GuessGameFSM.Intent.JUDGE # 在等待判断阶段，用户的回答应该被解析为 judge 意图
 
-		if phase == "awaiting_answer":
-			if intent != "answer":
-				return self._reject_turn(game_id, phase, "请先回答上一轮问题", history)
+		if phase == GuessGameFSM.State.USER_TURN:
+			if intent == GuessGameFSM.Intent.ANSWER:
+				intent = GuessGameFSM.Intent.INVALID # 在用户回合阶段，用户的回答不应该被解析为 answer 意图，强制修正为 invalid
+
+		logger.info("当前状态: %s, 用户意图: %s, FSM 轮次锁检查中...", phase, intent)
+		# 构建事件并让 FSM 处理状态转换
+		event = {
+			"user_intent": intent,
+		}
+		
+		# 添加额外的事件数据取决于意图类型
+		if intent == GuessGameFSM.Intent.GUESS:
+			system_word = system_word or self.reveal_target_word(game, self.settings)
+			event["system_judge"] = "correct" if self.is_guess_correct(intent_result.get("guess_word", ""), system_word) else "incorrect"
+		elif intent == GuessGameFSM.Intent.YIELD_TURN:
+			# 根据系统决策设置 system_next_action
+			event["system_next_action"] = intent_result.get("system_next_action", GuessGameFSM.SystemAction.ASK_QUESTION)
+		elif intent == GuessGameFSM.Intent.JUDGE:
+			user_input_lower = question.strip().lower()
+			event["user_judge"] = "correct" if user_input_lower in ["是", "正确", "对了", "yes"] else "incorrect"
+
+		# FSM 处理事件，返回转换结果
+		fsm_result = fsm.handle_event(event)
+		
+		# 根据 FSM 的结果获取应该调用的处理器
+		handler_name = fsm.get_handler_name(fsm_result)
+		
+		# 根据 handler_name 调用相应的业务处理方法（FSM 统一管理了状态转换和轮次锁）
+		if handler_name == "handle_user_question":
+			return await self._handle_user_question(game, question, history, mode)
+		elif handler_name == "handle_user_guess":
+			return await self._handle_user_guess(game, intent_result)
+		elif handler_name == "handle_user_answer":
 			return await self._handle_user_answer(game, question, history, intent_result)
-
-		# user_turn 阶段：只允许 question 和 guess
-		if phase == "user_turn":
-			if intent == "invalid":
-				return self._reject_turn(game_id, phase, "请输入有效问题或提问", history)
-			if intent == "guess":
-				return await self._handle_user_guess(game, intent_result)
-			if intent == "answer":
+		elif handler_name == "handle_agent_guess_judgement":
+			return await self._handle_agent_guess_judgement(game, question)
+		elif handler_name == "handle_invalid_input":
+			if phase == GuessGameFSM.State.USER_TURN and intent_result.get("intent") == "answer":
 				return self._reject_turn(game_id, phase, "现在轮到你提问或猜词，不是回答阶段", history)
-			if intent == "question":
-				return await self._handle_user_question(game, question, history, mode)
-
-		return self._reject_turn(game_id, phase, "当前轮次状态异常", history)
+			if phase == GuessGameFSM.State.AWAITING_ANSWER and intent_result.get("intent") == "question":
+				return self._reject_turn(game_id, phase, "请先回答上一轮问题", history)
+			return self._reject_turn(game_id, phase, "请输入有效问题或提问", history)
+		elif handler_name == "handle_rejected_turn":
+			return self._reject_turn(game_id, phase, fsm_result.get("message", "当前轮次不允许该操作"), history)
+		elif handler_name == "handle_game_finished":
+			return {"game_id": game_id, "status": "finished", "message": "游戏已结束"}
+		elif handler_name == "handle_error":
+			return {"game_id": game_id, "status": "error", "message": fsm_result.get("message", "系统错误")}
+		else:
+			# 未知处理器
+			return self._reject_turn(game_id, phase, "系统内部错误", history)
 
 	async def _handle_user_guess(self, game: dict, intent_result: dict):
 		target_word = self.reveal_target_word(game, self.settings)
@@ -387,7 +531,7 @@ class GameService:
 			round_count=len(updated_history),
 			phase="user_turn",
 			awaiting_judgement=False,
-			awaiting_answer=False,
+			waiting_answer=False,
 			pending_guess="",
 			pending_question="",
 			agent_confidence=0.0,
@@ -444,7 +588,7 @@ class GameService:
 			round_count=len(history),
 			phase="user_turn",
 			awaiting_judgement=False,
-			awaiting_answer=False,
+			waiting_answer=False,
 			pending_guess="",
 			pending_question="",
 			agent_confidence=0.0,
@@ -533,9 +677,9 @@ class GameService:
 				history=updated_history,
 				summary=self.memory_policy.build_summary(updated_history),
 				round_count=len(updated_history),
-				phase="awaiting_answer",
+				phase="waiting_answer",
 				awaiting_judgement=False,
-				awaiting_answer=True,
+				waiting_answer=True,
 				pending_guess="",
 				pending_question=agent_question,
 				agent_confidence=agent_decision.get("confidence", 0.0),
@@ -550,7 +694,7 @@ class GameService:
 			return {
 				"game_id": game["game_id"],
 				"status": game.get("status", "active"),
-				"phase": "awaiting_answer",
+				"phase": "waiting_answer",
 				"answer": answer_label,
 				"response_text": answer_text,
 				"answer_text": answer_text,
@@ -586,7 +730,7 @@ class GameService:
 				round_count=len(updated_history),
 				phase="awaiting_judgement",
 				awaiting_judgement=True,
-				awaiting_answer=False,
+				waiting_answer=False,
 				pending_guess=guess_word,
 				pending_question="",
 				agent_confidence=agent_decision.get("confidence", 0.0),
@@ -614,12 +758,23 @@ class GameService:
 
 	async def _handle_user_answer(self, game: dict, user_input: str, history: list[dict], intent_result: dict | None = None):
 		resolved_answer = self._resolve_user_answer(user_input, intent_result)
+		pending_question = game.get("metadata", {}).get("pending_question", "")
+
+		if resolved_answer == "yes" and self._is_guess_confirmation_question(pending_question):
+			now = datetime.now()
+			await self.repository.finish_game(game["game_id"], reason="agent_win_guessed_correctly", finished_at=now)
+			return {
+				"game_id": game["game_id"],
+				"status": "finished",
+				"result": "agent_win",
+				"message": "系统猜测正确！游戏结束",
+			}
 
 		if resolved_answer is None:
 			return {
 				"game_id": game["game_id"],
 				"status": game.get("status", "active"),
-				"phase": game.get("metadata", {}).get("phase", "awaiting_answer"),
+				"phase": game.get("metadata", {}).get("phase", "waiting_answer"),
 				"message": "请回答是、否或不知道",
 				"history": history,
 			}
@@ -648,7 +803,7 @@ class GameService:
 			round_count=len(updated_history),
 			phase="user_turn",
 			awaiting_judgement=False,
-			awaiting_answer=False,
+			waiting_answer=False,
 			pending_guess="",
 			pending_question="",
 			agent_confidence=0.0,
@@ -666,5 +821,5 @@ class GameService:
 			"phase": "user_turn",
 			"answer": resolved_answer,
 			"history": updated_history,
-			"message": "回答已记录，现在轮到你继续提问或直接猜答案。",
+			"message": "回答已记录，现在轮到你提问或猜词。",
 		}

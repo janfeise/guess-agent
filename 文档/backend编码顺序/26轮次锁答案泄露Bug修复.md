@@ -180,7 +180,7 @@ return result
 
 ```
 日志: decide_agent_action 返回 action: "ask"
-响应: phase: "awaiting_judgement"  ← 错误！应该是 awaiting_answer
+响应: phase: "awaiting_judgement"  ← 错误！应该是 waiting_answer
 响应: system_guess: ""  ← 空的猜测词
 消息: "我猜你想的词是：。对吗？"  ← 猜测词为空
 ```
@@ -189,7 +189,7 @@ return result
 
 ```
 日志: decide_agent_action 返回 action: "ask"
-响应: phase: "awaiting_answer"  ← 正确！
+响应: phase: "waiting_answer"  ← 正确！
 响应: system_question: "它是不是一个具体的物体？"  ← 系统的下一个问题
 消息: "我的下一个问题是：它是不是一个具体的物体？"  ← 显示系统问题
 ```
@@ -256,6 +256,6 @@ def test_sanitize_history_removes_result_field():
 ▶️ **验证**：
 
 - ✅ 无语法错误
-- ✅ 修复后第一轮正确进入 awaiting_answer
+- ✅ 修复后第一轮正确进入 waiting_answer
 - ✅ history 不包含敏感信息
 - ✅ system_question 正确显示

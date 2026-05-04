@@ -4,6 +4,8 @@
 import logging
 
 from app.api.v1.health import router as health_router
+from app.api.game_details import router as game_details_router
+from app.api.user_games import router as user_games_router
 from app.api.v1.games import router as games_router
 from app.api.v1.submit_turn import router as submit_turn_router
 from app.core.config import get_settings
@@ -61,6 +63,8 @@ app.add_middleware(
 
 # 注册路由
 app.include_router(health_router, prefix="/api/v1")
+app.include_router(game_details_router, prefix="/api")
+app.include_router(user_games_router, prefix="/api")
 app.include_router(games_router, prefix="/api/v1")
 app.include_router(submit_turn_router, prefix="/api/v1")
 

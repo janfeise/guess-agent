@@ -1,0 +1,485 @@
+.resultPage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 100%;
+  padding: 2rem 0 3rem;
+  margin-top: 60px;
+}
+
+.resultPage::before,
+.resultPage::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(100px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.resultPage::before {
+  inset: -6rem auto auto -7rem;
+  width: 18rem;
+  height: 18rem;
+  background: var(--result-ambient-1);
+}
+
+.resultPage::after {
+  right: -8rem;
+  bottom: 6rem;
+  width: 22rem;
+  height: 22rem;
+  background: var(--result-ambient-2);
+}
+
+.resultPageWin {
+  --result-accent: #006c5a;
+  --result-accent-strong: #7ae8cc;
+  --result-accent-soft: rgba(122, 232, 204, 0.16);
+  --result-accent-soft-strong: rgba(137, 246, 218, 0.28);
+  --result-ink: #2d3335;
+  --result-muted: #5a6062;
+  --result-card: rgba(255, 255, 255, 0.9);
+  --result-card-soft: rgba(241, 244, 245, 0.88);
+  --result-badge-bg: rgba(137, 246, 218, 0.95);
+  --result-badge-fg: #005d4d;
+  --result-title: #006c5a;
+  --result-ambient-1: rgba(137, 246, 218, 0.45);
+  --result-ambient-2: rgba(58, 181, 137, 0.18);
+}
+
+.resultPageLose {
+  --result-accent: #a83836;
+  --result-accent-strong: #fa746f;
+  --result-accent-soft: rgba(250, 116, 111, 0.16);
+  --result-accent-soft-strong: rgba(250, 116, 111, 0.28);
+  --result-ink: #2d3335;
+  --result-muted: #5a6062;
+  --result-card: rgba(255, 255, 255, 0.88);
+  --result-card-soft: rgba(241, 244, 245, 0.86);
+  --result-badge-bg: rgba(250, 116, 111, 0.92);
+  --result-badge-fg: #6e0a12;
+  --result-title: #a83836;
+  --result-ambient-1: rgba(250, 116, 111, 0.36);
+  --result-ambient-2: rgba(168, 56, 54, 0.18);
+}
+
+.resultShell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  animation: resultRise 0.6s ease both;
+}
+
+.hero {
+  text-align: center;
+  padding: 0.5rem 1rem 0;
+}
+
+.badge,
+.badgeLose {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: 9999px;
+  margin-bottom: 1.25rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--result-badge-fg);
+  background: var(--result-badge-bg);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.08);
+}
+
+.badgeIcon {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: 0 0 auto;
+}
+
+.title,
+.titleLose {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: clamp(3.8rem, 10vw, 7.5rem);
+  line-height: 0.92;
+  letter-spacing: -0.09em;
+  font-weight: 800;
+  color: var(--result-title);
+}
+
+.subtitle {
+  max-width: 40rem;
+  margin: 1rem auto 0;
+  color: var(--result-muted);
+  font-size: 1rem;
+  line-height: 1.85;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 0.85fr);
+  gap: 1rem;
+}
+
+.mainCard,
+.mainCardLose,
+.statCard,
+.reviewCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(173, 179, 181, 0.28);
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.06);
+}
+
+.mainCard,
+.mainCardLose {
+  padding: 2rem;
+  border-radius: 2rem;
+  background: var(--result-card);
+}
+
+.mainCard::before,
+.mainCardLose::before,
+.statCardWide::before,
+.statCardWideLose::before,
+.reviewCard::before {
+  content: "";
+  position: absolute;
+  inset: auto -2rem -2rem auto;
+  width: 12rem;
+  height: 12rem;
+  border-radius: 9999px;
+  background: var(--result-accent-soft);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.cardLabel {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--result-muted);
+}
+
+.wordRow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cardIcon {
+  width: 2.3rem;
+  height: 2.3rem;
+  color: var(--result-accent);
+  flex: 0 0 auto;
+}
+
+.wordValue,
+.wordValueLose {
+  font-family: var(--font-headline);
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.08em;
+  font-weight: 800;
+  color: var(--result-ink);
+  word-break: break-word;
+}
+
+.wordValue {
+  color: var(--result-ink);
+}
+
+.wordValueLose {
+  color: var(--result-title);
+}
+
+.cardFoot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  margin-top: 2rem;
+  color: var(--result-accent);
+}
+
+.footIcon {
+  width: 2.2rem;
+  height: 2.2rem;
+  opacity: 0.45;
+}
+
+.footDivider {
+  flex: 1 1 auto;
+  height: 1px;
+  margin-left: 1rem;
+  background: rgba(173, 179, 181, 0.24);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.statCard,
+.statCardWide,
+.statCardWideLose {
+  border-radius: 1.5rem;
+  background: var(--result-card-soft);
+}
+
+.statCard {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.statCardIcon {
+  width: 2rem;
+  height: 2rem;
+  color: #1a6780;
+  margin-bottom: 1.5rem;
+}
+
+.statCardValue {
+  font-family: var(--font-headline);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1;
+  font-weight: 800;
+  color: var(--result-ink);
+}
+
+.statCardLabel {
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--result-muted);
+}
+
+.statCardWide,
+.statCardWideLose {
+  grid-column: 1 / -1;
+  padding: 1.5rem;
+}
+
+.confidenceHead {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.confidenceIcon,
+.confidenceIconLose {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-bottom: 0.55rem;
+}
+
+.confidenceIcon {
+  color: #6c5f18;
+}
+
+.confidenceIconLose {
+  color: #a83836;
+}
+
+.confidenceValue,
+.confidenceValueLose {
+  font-family: var(--font-headline);
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  line-height: 1;
+  font-weight: 800;
+}
+
+.confidenceValue {
+  color: #6c5f18;
+}
+
+.confidenceValueLose {
+  color: #a83836;
+}
+
+.progressTrack,
+.progressTrackLose {
+  position: relative;
+  z-index: 1;
+  height: 0.6rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: rgba(173, 179, 181, 0.28);
+}
+
+.progressFill,
+.progressFillLose {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--result-accent),
+    var(--result-accent-strong)
+  );
+}
+
+.reviewCard {
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.72);
+  border-left: 4px solid var(--result-accent);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+.reviewIcon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--result-accent);
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+}
+
+.reviewText {
+  margin: 0;
+  color: var(--result-muted);
+  line-height: 1.8;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-width: 14.5rem;
+  padding: 1rem 1.25rem;
+  border: none;
+  border-radius: 1.2rem;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--font-headline);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+}
+
+.primaryButton {
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    var(--result-accent),
+    var(--result-accent-strong)
+  );
+  box-shadow: 0 18px 34px rgba(0, 108, 90, 0.16);
+}
+
+.resultPageLose .primaryButton {
+  box-shadow: 0 18px 34px rgba(168, 56, 54, 0.16);
+}
+
+.secondaryButton {
+  color: #005971;
+  background: rgba(187, 233, 255, 0.78);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
+}
+
+.primaryButton:hover,
+.secondaryButton:hover {
+  transform: translateY(-1px);
+}
+
+.primaryButton:active,
+.secondaryButton:active {
+  transform: scale(0.98);
+}
+
+.buttonIcon {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: 0 0 auto;
+}
+
+@keyframes resultRise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mainCard,
+  .mainCardLose {
+  }
+}
+
+@media (max-width: 640px) {
+  .resultPage {
+    padding: 1rem 0 2rem;
+  }
+
+  .hero {
+    padding-inline: 0;
+  }
+
+  .mainCard,
+  .mainCardLose,
+  .statCard,
+  .statCardWide,
+  .statCardWideLose,
+  .reviewCard {
+    border-radius: 1.4rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+    min-width: 0;
+  }
+}
